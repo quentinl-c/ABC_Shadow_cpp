@@ -23,6 +23,7 @@ private:
     
 public:
     MCMCSim(GraphWrapper *g);
+    ~MCMCSim();
     
     void setGraph(GraphWrapper *new_g);
     

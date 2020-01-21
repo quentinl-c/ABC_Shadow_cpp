@@ -29,7 +29,7 @@ private:
     PottsModel* model;
     RandomGen* rGen;
 
-    Stats yObs;
+    const Stats yObs;
     Stats theta0;
     Stats delta;
     int iter, n, samplerIt, samplerBy, samplerBurnin;

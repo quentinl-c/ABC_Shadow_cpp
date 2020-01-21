@@ -7,3 +7,157 @@
 //
 
 #include "ConfigReader.hpp"
+
+ConfigReader::ConfigReader() : sizeIn(12),
+                               sizeOut(8),
+                               seed(2018),
+                               iter(1002000),
+                               n(200),
+                               samplerIt(200),
+                               simIter(1000),
+                               name("default"),
+                               path("./conf.txt"),
+                               theta0(),
+                               thetaPerf(),
+                               delta(0.01, 0.01, 0.01),
+                               yObs(),
+                               simObs(true){}
+
+void ConfigReader::setAttr(string attrName, string val) {
+    if(attrName == "sizeIn"){
+        sizeIn = stoi(val);
+    } else if(attrName == "sizeOut") {
+        sizeOut = stoi(val);
+    } else if(attrName == "seed") {
+        seed = stoi(val);
+    } else if(attrName == "iter") {
+        iter = stoi(val);
+    } else if(attrName == "n") {
+        n = stoi(val);
+    } else if(attrName == "samplerIt") {
+        samplerIt = stoi(val);
+    } else if(attrName == "simIter") {
+        simIter = stoi(val);
+    } else if(attrName == "name") {
+        name = val;
+    } else if(attrName == "theta0") {
+        theta0 = toStats(val.c_str());
+    } else if(attrName == "thetaPerf") {
+        thetaPerf = toStats(val.c_str());
+    } else if(attrName == "delta") {
+        delta = toStats(val.c_str());
+    } else if(attrName == "yObs") {
+        yObs = toStats(val.c_str());
+        simObs = false;
+    } else {
+        cout << val << " discarded, " << attrName << " doesn't match any attribute." << endl;
+    }
+}
+
+
+void ConfigReader::read() {
+    string delimiter{":"};
+    ifstream configfile(path);
+    if (configfile.is_open()){
+        string line;
+        while(getline(configfile, line)){
+            line.erase(std::remove_if(line.begin(), line.end(), isspace), line.end());
+            if(line[0] == '#' || line.empty()){
+                continue;
+            }
+            auto delimiterPos = line.find(delimiter);
+            auto attrName = line.substr(0, delimiterPos);
+            auto value = line.substr(delimiterPos + 1);
+            setAttr(attrName, value);
+        }
+        configfile.close();
+    } else {
+        cerr << "Couldn't open config file for reading.\n";
+    }
+}
+
+
+void ConfigReader::print() {
+    cout << "======== CONFIGURATION ========" << endl;
+    cout << "📄 size: " << sizeIn << "," << sizeOut << endl;
+    cout << "📄 theta_0: " << theta0 << endl;
+    cout << "📄 delta: " << delta << endl;
+    cout << "📄 seed: " << seed << endl;
+    cout << "📄 iter: " << iter << endl;
+    cout << "📄 n: " << n << endl;
+    cout << "📄 sampler_it: " << samplerIt << endl;
+    cout << "📄 y_obs: " << yObs << endl;
+    if(simObs) {
+        cout << "⚠️ Simulated data " << endl;
+        cout << "📄 simIter: " <<  simIter << endl;
+        cout << "📄 thetaPerf: " << thetaPerf << endl;
+    }
+
+}
+
+void ConfigReader::save(const string &path) {
+    ofstream configfile;
+    configfile.open(path, std::ios::out | std::ios::trunc);
+    if (configfile.is_open()){
+        configfile << "size: " << sizeIn << "," << sizeOut << endl;
+        configfile << "theta_0: " << theta0 << endl;
+        configfile << "delta: " << delta << endl;
+        configfile << "seed: " << seed << endl;
+        configfile << "iter: " << iter << endl;
+        configfile << "n: " << n << endl;
+        configfile << "sampler_it: " << samplerIt << endl;
+        configfile << "y_obs: " << yObs << endl;
+        if(simObs) {
+            configfile << "simIter: " <<  simIter << endl;
+            configfile << "thetaPerf: " << thetaPerf << endl;
+        }
+
+        configfile.close();
+    } else {
+        cerr << "Couldn't open config file for reading.\n";
+    }
+    
+}
+void ConfigReader::setSizeIn(const int &s) {sizeIn = s;}
+int ConfigReader::getSizeIn() {return sizeIn;}
+void ConfigReader::setSizeOut(const int &s) {sizeOut = s;}
+int ConfigReader::getSizeOut() {return sizeOut;}
+int ConfigReader::getSeed() {return seed;}
+int ConfigReader::getIter() {return iter;}
+int ConfigReader::getN() {return n;}
+int ConfigReader::getSamplerIt() {return samplerIt;}
+int ConfigReader::getSimIter() {return simIter;}
+void ConfigReader::setTheta0(Stats newTheta) {theta0 = newTheta;}
+Stats ConfigReader::getTheta0() {return theta0;}
+void ConfigReader::setThetaPerf(Stats newTheta) {thetaPerf = newTheta;}
+Stats ConfigReader::getThetaPerf() {return thetaPerf;}
+Stats ConfigReader::getDelta() {return delta;}
+void ConfigReader::setYObs(const Stats &stat) {yObs = stat;}
+Stats ConfigReader::getYObs() {return yObs;}
+void ConfigReader::setSimobs(bool flag) {simObs = flag;}
+bool ConfigReader::isSimObs() {return simObs;}
+
+void ConfigReader::setPath(const string &path) {this->path = path;}
+string ConfigReader::getName() {return name;}
+
+
+Stats toStats(const char *input){
+    string s = input;
+    string delimiter = ",";
+    
+    size_t pos = 0;
+    string num;
+    vector<double> vec{};
+    while ((pos = s.find(delimiter)) != string::npos) {
+        num = s.substr(0, pos);
+        vec.push_back(atof(num.c_str()));
+        s.erase(0, pos + delimiter.length());
+    }
+    vec.push_back(atof(s.c_str()));
+    if(vec.size() < 3) {
+        cerr << "Not the right input" << endl;
+        return Stats{};
+    } else {
+        return Stats{vec[0],vec[1], vec[2]};
+    }
+}

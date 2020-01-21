@@ -26,6 +26,8 @@ private:
 public:
     RandomGen(unsigned int seed);
     
+    unsigned int getSeed();
+    
     int getUniformIntD();
     int getUniformIntD(int min, int max);
     double getUnifornRealD();

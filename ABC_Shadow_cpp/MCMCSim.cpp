@@ -10,7 +10,7 @@
 
 MCMCSim::MCMCSim(GraphWrapper *g): graph(g) {}
 
-
+MCMCSim:: ~MCMCSim() {}
 
 void MCMCSim::setGraph(GraphWrapper *new_g) {
     graph = new_g;

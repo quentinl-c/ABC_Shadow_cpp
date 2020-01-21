@@ -19,7 +19,7 @@ class Stats {
 private:
     
     array<double, 3> vec;
-    size_t size{3};
+    int size{3};
 
 public:
     Stats();

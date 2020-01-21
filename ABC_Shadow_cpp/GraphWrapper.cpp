@@ -76,6 +76,8 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
     
 }
 
+GraphWrapper::~GraphWrapper() {}
+
 void GraphWrapper::empty() {
     for(auto &n : nodeList) {
         n.updateNodeState(State::DISABLED);

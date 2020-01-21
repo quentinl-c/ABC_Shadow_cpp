@@ -10,6 +10,10 @@
 
 RandomGen::RandomGen(unsigned int seed): seed{seed}, r_engine{seed}, unifIntD{0, 1}, unifRealD{} {}
 
+unsigned int RandomGen::getSeed() {
+    return seed;
+}
+
 int RandomGen::getUniformIntD() {
     return unifIntD(r_engine);
 }

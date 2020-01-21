@@ -36,7 +36,7 @@ ABCShadow::ABCShadow(MCMCSim* mcmcSim,
                      minBound(minBound),
                      maxBound(maxBound),
                      gibbsSampler(gibbsSampler),
-                     chain(iter){}
+                     chain(){}
 
 /*
  =====================================================
@@ -45,9 +45,10 @@ ABCShadow::ABCShadow(MCMCSim* mcmcSim,
  */
 
 Stats ABCShadow::computeShadowChain(const Stats &theta) {
+    //cout << "input theta: " << theta << endl;
     Stats thetaRes = theta;
     Stats candidate, ySim;
-    double alpha;
+    double alpha, prob;
 
     model->setParams(thetaRes);
     
@@ -57,17 +58,25 @@ Stats ABCShadow::computeShadowChain(const Stats &theta) {
         ySim = sampleFromMH();
     }
 
+    //cout << "ysim: " << ySim << endl;
+
     for(int i=0; i < n; i++) {
         candidate = getCandidate(thetaRes);
+        //cout << "candidate: " << candidate << endl;
+        //cout << "theta res: " << thetaRes << endl;
         alpha = computeDensityRatio(thetaRes, candidate, ySim);
-        if(alpha > rGen->getUnifornRealD()) {
+        prob = rGen->getUnifornRealD();
+        //cout << "prob: " << prob << endl;
+        if(alpha > prob) {
             thetaRes = candidate;
         }
     }
+    //cout << "Output theta: " << thetaRes << endl;
     return thetaRes;
 }
 
 Stats ABCShadow::sampleFromGibbs() {
+    //cout << "Auxiliary variable sim: theta-> " << model->getParams() << " samplerIt-> " << samplerIt << " burnin-> " << samplerBurnin << " by " << samplerBy << endl;
     vector<Stats> samples = mcmcSim->gibbsSim(*rGen, *model, samplerIt, samplerBurnin, samplerBy);
     Stats avg{};
     int t = 1;
@@ -95,7 +104,7 @@ Stats ABCShadow::getCandidate(const Stats &theta){
     int index = rGen->getUniformIntD(0, 2);
     Stats candidate = theta;
     double oldVal = candidate[index];
-    double newVal = rGen->getUnifornRealD(oldVal - delta[index], oldVal + delta[index]);
+    double newVal = rGen->getUnifornRealD(oldVal - delta[index] / 2, oldVal + delta[index] / 2);
 
     newVal = (newVal > maxBound) ? maxBound : newVal;
     newVal = (newVal < minBound) ? minBound : newVal;
@@ -110,16 +119,15 @@ double ABCShadow::computeDensityRatio(const Stats &oldTheta,
                                       const Stats &ySim) {
     double p1, p2, q1, q2, ratio;
 
-    model->setParams(candidateTheta);
-    p1 = model->evaluateFromStats(yObs);
-    q2 = model->evaluateFromStats(ySim);
+    p1 = candidateTheta.dot(yObs);
+    q2 = candidateTheta.dot(ySim);
     
-    model->setParams(oldTheta);
-    p2 = model->evaluateFromStats(yObs);
-    q1 = model->evaluateFromStats(ySim);
-    
+    p2 = oldTheta.dot(yObs);
+    q1 = oldTheta.dot(ySim);
+
     ratio = (exp(p1 - p2)) * (exp(q1 - q2));
     ratio = (ratio >= 1) ? 1 : ratio;
+    //cout << "ratio: " << ratio << endl;
     return ratio;
 }
 
@@ -134,12 +142,14 @@ void ABCShadow::runABCShadow() {
     
     Stats theta = theta0;
     chain.push_back(theta0);
-
-    for(int i=0; i< iter - 1; i++) {
+    chain.clear();
+    //cout << "size " << chain.size() << endl;
+    for(int i=0; i< iter-1; i++) {
+        //cout << "::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::" << endl;
         theta = computeShadowChain(theta);
-        if(i % 100 == 0) {
+        /*if(i % 1000 == 0) {
             cout <<  i << " iters - theta :" << theta << "\n";
-        }
+        }*/
         chain.push_back(theta);
     }
 }
@@ -149,6 +159,7 @@ void ABCShadow::saveChain(ofstream &outputfile) {
       cerr << "Error: file could not be opened" << endl;
       exit(1);
     }
+    //cout << "size " << chain.size() << endl;
     for(auto const &v : chain) {
         outputfile << v << endl;
     }

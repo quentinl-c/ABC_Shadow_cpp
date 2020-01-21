@@ -28,7 +28,7 @@ private:
 public:
 
     GraphWrapper(const int inSize, const int outSize);
-    
+    ~GraphWrapper();
     void empty();
     vector<Node> &getNodes();
     Stats getInteractionStats();
