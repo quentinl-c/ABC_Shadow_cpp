@@ -104,3 +104,4 @@ DerivedData/
 ### Other ###
 *.xcodeproj/
 *.pdf
+shadow
