@@ -28,8 +28,8 @@ public:
     void setGraph(GraphWrapper *new_g);
     
     void reset();
-    vector<Stats> mhSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int burnin=0, const int by=1);
-    vector<Stats> gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int burnin=0, const int by=1);
+    vector<Stats> mhSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by=1, const int burnin=0);
+    vector<Stats> gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by=1, const int burnin=0);
 };
 
 #endif /* MCMCSim_hpp */

@@ -52,13 +52,14 @@ int main(int argc, const char * argv[]) {
         cout << "Real data: " << endl;
         string name = argv[3];
         cout << "name: " << name << endl;
+        confReader.setName(name);
         int inSize = std::atoi(argv[5]);
         confReader.setSizeIn(inSize);
         int outSize = std::atoi(argv[6]);
         confReader.setSizeOut(outSize);
         cout << "size: " << inSize << "," << outSize << endl;
         Stats stat = toStats(argv[4]);
-        cout << "y_obs: " << stat << endl;
+        cout << "input vec: " << stat << endl;
         
         if (action == "abc_estim") {
             confReader.setYObs(stat);
@@ -72,11 +73,12 @@ int main(int argc, const char * argv[]) {
     GraphWrapper* g = new GraphWrapper(confReader.getSizeIn(), confReader.getSizeOut());
     PottsModel* model = new PottsModel();
     RandomGen* rGen = new RandomGen(confReader.getSeed());
-    MCMCSim* mh = new MCMCSim(g);
+    MCMCSim* mcmc = new MCMCSim(g);
 
     ofstream outputfile;
     outputfile.open(confReader.getName() + "_traces.csv", std::ios::out | std::ios::trunc);
     if( !outputfile) {
+        cout << "Ça marche pas" << endl;
         cerr << "Error: output file could not be opened" << endl;
         exit(-1);
     }
@@ -88,7 +90,7 @@ int main(int argc, const char * argv[]) {
             time_start = clock_time::now();
             cout << "Simulate the observation : " << confReader.getThetaPerf() << endl;
             model->setParams(confReader.getThetaPerf());
-            vector<Stats> res = mh->gibbsSim(*rGen, *model, confReader.getSimIter());
+            vector<Stats> res = mcmc->gibbsSim(*rGen, *model, confReader.getSimIter());
             Stats yObs = avgTraces(res);
             confReader.setYObs(yObs);
             cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
@@ -99,7 +101,7 @@ int main(int argc, const char * argv[]) {
         time_start = clock_time::now();
         cout << "ABC Shadow is running ...  🚀 ⏳" << endl;
         
-        ABCShadow* abc = new ABCShadow(mh,
+        ABCShadow* abc = new ABCShadow(mcmc,
                                        model,
                                        rGen,
                                        confReader.getYObs(),
@@ -117,7 +119,7 @@ int main(int argc, const char * argv[]) {
     } else if (action == "mh_sim") {
         time_start = clock_time::now();
         model->setParams(confReader.getThetaPerf());
-        vector<Stats> res = mh->mhSim(*rGen, *model, confReader.getSimIter());
+        vector<Stats> res = mcmc->mhSim(*rGen, *model, confReader.getSimIter(), confReader.getSimBy());
         saveSimTraces(outputfile, res);
         confReader.save(confReader.getName() + "_config_mh_sim.txt");
         Stats yObs = avgTraces(res);
@@ -125,10 +127,11 @@ int main(int argc, const char * argv[]) {
     } else if (action == "gibbs_sim") {
         time_start = clock_time::now();
         model->setParams(confReader.getThetaPerf());
-        vector<Stats> res = mh->gibbsSim(*rGen, *model, confReader.getSimIter());
+        vector<Stats> res = mcmc->gibbsSim(*rGen, *model, confReader.getSimIter(), confReader.getSimBy());
         saveSimTraces(outputfile, res);
         confReader.save(confReader.getName() + "_config_gibbs_sim.txt");
         Stats yObs = avgTraces(res);
+        outputfile.close();
         cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
     } else {
         cerr << "No action matches to " << action << " [abc_estim] [mh_sim] [gibbs_sim]" << endl;

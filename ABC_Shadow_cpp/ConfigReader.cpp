@@ -15,6 +15,7 @@ ConfigReader::ConfigReader() : sizeIn(12),
                                n(200),
                                samplerIt(200),
                                simIter(1000),
+                               simBy(1),
                                name("default"),
                                path("./conf.txt"),
                                theta0(),
@@ -38,6 +39,8 @@ void ConfigReader::setAttr(string attrName, string val) {
         samplerIt = stoi(val);
     } else if(attrName == "simIter") {
         simIter = stoi(val);
+    } else if(attrName == "simBy") {
+           simBy = stoi(val);
     } else if(attrName == "name") {
         name = val;
     } else if(attrName == "theta0") {
@@ -108,6 +111,7 @@ void ConfigReader::save(const string &path) {
         configfile << "sampler_it: " << samplerIt << endl;
         configfile << "y_obs: " << yObs << endl;
         if(simObs) {
+            configfile << "simBy: " << simBy << endl;
             configfile << "simIter: " <<  simIter << endl;
             configfile << "thetaPerf: " << thetaPerf << endl;
         }
@@ -127,6 +131,7 @@ int ConfigReader::getIter() {return iter;}
 int ConfigReader::getN() {return n;}
 int ConfigReader::getSamplerIt() {return samplerIt;}
 int ConfigReader::getSimIter() {return simIter;}
+int ConfigReader::getSimBy() {return simBy;}
 void ConfigReader::setTheta0(Stats newTheta) {theta0 = newTheta;}
 Stats ConfigReader::getTheta0() {return theta0;}
 void ConfigReader::setThetaPerf(Stats newTheta) {thetaPerf = newTheta;}
@@ -138,6 +143,7 @@ void ConfigReader::setSimobs(bool flag) {simObs = flag;}
 bool ConfigReader::isSimObs() {return simObs;}
 
 void ConfigReader::setPath(const string &path) {this->path = path;}
+void  ConfigReader::setName(const string &name) {this->name = name;}
 string ConfigReader::getName() {return name;}
 
 

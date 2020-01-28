@@ -29,7 +29,7 @@ Stats toStats(const char *input);
 class ConfigReader {
     
 private:
-    int sizeIn, sizeOut, seed, iter, n, samplerIt, simIter;
+    int sizeIn, sizeOut, seed, iter, n, samplerIt, simIter, simBy;
     string name, path;
     Stats theta0, thetaPerf, delta, yObs;
     bool simObs;
@@ -51,6 +51,7 @@ public:
     int getN();
     int getSamplerIt();
     int getSimIter();
+    int getSimBy();
     void setPath(const string &path);
     void setTheta0(Stats newTheta);
     Stats getTheta0();
@@ -62,5 +63,6 @@ public:
     void setSimobs(bool flag);
     bool isSimObs();
     string getName();
+    void setName(const string &name);
 };
 #endif /* ConfigReader_hpp */

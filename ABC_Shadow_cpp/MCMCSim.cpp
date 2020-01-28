@@ -21,7 +21,7 @@ void MCMCSim::reset() {
 }
 
 
-vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_max, const int burnin, const int by) {
+vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_max, const int by, const int burnin) {
     vector<Stats> res{};
 
     vector<Node> &nodes{graph->getNodes()};
@@ -40,7 +40,7 @@ vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_
     for (int mh_iter{0}; mh_iter < iter_max; ++mh_iter) {
 
 
-        if (mh_iter >= burnin || mh_iter % by == 0) {
+        if (mh_iter >= burnin && mh_iter % by == 0) {
             res.push_back(stats);
         }
         
@@ -67,7 +67,7 @@ vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_
     return res;
 }
 
-vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, int iter_max, int burnin, int by) {
+vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by, const int burnin) {
     vector<Stats> res{};
     
     vector<Node> &nodes{graph->getNodes()};
@@ -75,7 +75,7 @@ vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, int iter_max
     Stats stats(model.getStats(*graph));
 
     for (int gibbs_iter{0}; gibbs_iter < iter_max; ++gibbs_iter) {
-        if (gibbs_iter >= burnin || gibbs_iter % by == 0) {
+        if (gibbs_iter >= burnin && gibbs_iter % by == 0) {
             res.push_back(stats);
         }
         for (size_t i{0}; i < nodeNbr; i++) {
