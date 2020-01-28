@@ -8,13 +8,3 @@ n: 200
 samplerIt: 500
 # Bounds of the proposal
 delta: 0.01, 0.01, 0.01
-# size of the grap [might be overridden by cmd args]
-sizeIn: 12
-sizeOut: 8
-# === Simultation section ===
-# Number of iterations of the simulation procedure
-simIter: 1200
-# Parameters of the model [might be overridden by cmd args]
-thetaPerf: -0.5,0.2,0.3
-# prefix of the output path
-name: paper_theta_fixed

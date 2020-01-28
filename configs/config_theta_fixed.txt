@@ -8,10 +8,10 @@ n: 100
 samplerIt: 500
 # Bounds of the proposal
 delta: 0.01, 0.01, 0.01
-# size of the grap [might be overridden by cmd args]
+# size of the graph [might be overridden by cmd args]
 sizeIn: 12
 sizeOut: 8
-# === Simultation section ===
+# === Simulation section ===
 # Number of iterations of the simulation procedure
 simIter: 1200
 # Parameters of the model [might be overridden by cmd args]
