@@ -25,6 +25,7 @@ using std::endl;
 using std::vector;
 
 Stats toStats(const char *input);
+vector<int> toVec(const char *input);
 
 class ConfigReader {
     
@@ -33,6 +34,7 @@ private:
     string name, path;
     Stats theta0, thetaPerf, delta, yObs;
     bool simObs;
+    vector<int> randomMask ;
     
     void setAttr(string attrName, string val);
 public:
@@ -52,6 +54,7 @@ public:
     int getSamplerIt();
     int getSimIter();
     int getSimBy();
+    vector<int> getRandomMask();
     void setPath(const string &path);
     void setTheta0(Stats newTheta);
     Stats getTheta0();

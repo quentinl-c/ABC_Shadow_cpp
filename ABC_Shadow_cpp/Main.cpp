@@ -13,6 +13,7 @@
 #include "MCMCSim.hpp"
 #include <chrono> // for std::chrono functions
 #include <fstream>
+#include <map>
 #include "RandomGen.hpp"
 #include "ABCShadow.hpp"
 #include "ConfigReader.hpp"
@@ -44,7 +45,7 @@ int main(int argc, const char * argv[]) {
         confReader.setPath(configPath);
         confReader.read();
     } else {
-        cerr << "Usage : " << argv[0] << " action configPath [name] [yObs/theta] [inSize] [outSize]" << endl;
+        cerr << "Usage : " << argv[0] << " action action configPath [name] [yObs/theta] [inSize] [outSize]" << endl;
         exit(-1);
     }
      
@@ -107,6 +108,7 @@ int main(int argc, const char * argv[]) {
                                        confReader.getYObs(),
                                        confReader.getTheta0(),
                                        confReader.getDelta(),
+                                       confReader.getRandomMask(),
                                        confReader.getIter(),
                                        confReader.getN(),
                                        confReader.getSamplerIt());

@@ -32,6 +32,7 @@ private:
     const Stats yObs;
     Stats theta0;
     Stats delta;
+    vector<int> randomMask;
     int iter, n, samplerIt, samplerBy, samplerBurnin;
     double minBound, maxBound;
     bool gibbsSampler;
@@ -54,6 +55,7 @@ public:
               Stats yObs,
               Stats theta0,
               Stats delta,
+              vector<int> randomMask,
               int iter,
               int n,
               int samplerIt,

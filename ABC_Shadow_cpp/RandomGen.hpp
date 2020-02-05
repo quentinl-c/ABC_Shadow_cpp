@@ -11,8 +11,11 @@
 
 #include <iostream>
 #include <random>
+#include <vector>
 
+using std::vector;
 using std::mt19937;
+using  std::discrete_distribution;
 using std::uniform_int_distribution;
 using std::uniform_real_distribution;
 
@@ -27,7 +30,8 @@ public:
     RandomGen(unsigned int seed);
     
     unsigned int getSeed();
-    
+    mt19937 &getEngine();
+    int getDiscreteInt(const vector<int> &probs);
     int getUniformIntD();
     int getUniformIntD(int min, int max);
     double getUnifornRealD();

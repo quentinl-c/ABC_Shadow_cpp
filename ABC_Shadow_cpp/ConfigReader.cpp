@@ -22,7 +22,8 @@ ConfigReader::ConfigReader() : sizeIn(12),
                                thetaPerf(),
                                delta(0.01, 0.01, 0.01),
                                yObs(),
-                               simObs(true){}
+                               simObs(true),
+                               randomMask({1, 1, 1}){}
 
 void ConfigReader::setAttr(string attrName, string val) {
     if(attrName == "sizeIn"){
@@ -52,6 +53,8 @@ void ConfigReader::setAttr(string attrName, string val) {
     } else if(attrName == "yObs") {
         yObs = toStats(val.c_str());
         simObs = false;
+    } else if(attrName == "randomMask") {
+        randomMask = toVec(val.c_str());
     } else {
         cout << val << " discarded, " << attrName << " doesn't match any attribute." << endl;
     }
@@ -90,6 +93,7 @@ void ConfigReader::print() {
     cout << "📄 n: " << n << endl;
     cout << "📄 sampler_it: " << samplerIt << endl;
     cout << "📄 y_obs: " << yObs << endl;
+    cout << "🎭 randomMask: " << randomMask[0] << ", " << randomMask[1] << ", " << randomMask[2] << endl;
     if(simObs) {
         cout << "⚠️ Simulated data " << endl;
         cout << "📄 simIter: " <<  simIter << endl;
@@ -110,6 +114,7 @@ void ConfigReader::save(const string &path) {
         configfile << "n: " << n << endl;
         configfile << "sampler_it: " << samplerIt << endl;
         configfile << "y_obs: " << yObs << endl;
+        configfile << "randomMask: " << randomMask[0] << ", " << randomMask[1] << ", " << randomMask[2] << endl;
         if(simObs) {
             configfile << "simBy: " << simBy << endl;
             configfile << "simIter: " <<  simIter << endl;
@@ -132,6 +137,7 @@ int ConfigReader::getN() {return n;}
 int ConfigReader::getSamplerIt() {return samplerIt;}
 int ConfigReader::getSimIter() {return simIter;}
 int ConfigReader::getSimBy() {return simBy;}
+vector<int> ConfigReader::getRandomMask() {return randomMask;}
 void ConfigReader::setTheta0(Stats newTheta) {theta0 = newTheta;}
 Stats ConfigReader::getTheta0() {return theta0;}
 void ConfigReader::setThetaPerf(Stats newTheta) {thetaPerf = newTheta;}
@@ -167,3 +173,27 @@ Stats toStats(const char *input){
         return Stats{vec[0],vec[1], vec[2]};
     }
 }
+
+vector<int> toVec(const char *input){
+    string s = input;
+    string delimiter = ",";
+    
+    size_t pos = 0;
+    string num;
+    vector<int> vec{};
+    while ((pos = s.find(delimiter)) != string::npos) {
+        num = s.substr(0, pos);
+        vec.push_back(atoi(num.c_str()));
+        s.erase(0, pos + delimiter.length());
+    }
+    vec.push_back(atof(s.c_str()));
+    if(vec.size() < 3) {
+        cerr << "Not the right input" << endl;
+        return vector<int>{1,1,1};
+    } else {
+        return vec;
+    }
+}
+
+
+

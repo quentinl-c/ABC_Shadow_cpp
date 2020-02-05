@@ -14,6 +14,7 @@ ABCShadow::ABCShadow(MCMCSim* mcmcSim,
                      Stats yObs,
                      Stats theta0,
                      Stats delta,
+                     vector<int> randomMask,
                      int iter,
                      int n,
                      int samplerIt,
@@ -28,6 +29,7 @@ ABCShadow::ABCShadow(MCMCSim* mcmcSim,
                      yObs(yObs),
                      theta0(theta0),
                      delta(delta),
+                     randomMask(randomMask),
                      iter(iter),
                      n(n),
                      samplerIt(samplerIt),
@@ -77,7 +79,7 @@ Stats ABCShadow::computeShadowChain(const Stats &theta) {
 
 Stats ABCShadow::sampleFromGibbs() {
     //cout << "Auxiliary variable sim: theta-> " << model->getParams() << " samplerIt-> " << samplerIt << " burnin-> " << samplerBurnin << " by " << samplerBy << endl;
-    vector<Stats> samples = mcmcSim->gibbsSim(*rGen, *model, samplerIt, samplerBurnin, samplerBy);
+    vector<Stats> samples = mcmcSim->gibbsSim(*rGen, *model, samplerIt, samplerBy, samplerBurnin);
     Stats avg{};
     int t = 1;
     for (auto el : samples) {
@@ -89,7 +91,7 @@ Stats ABCShadow::sampleFromGibbs() {
 }
 
 Stats ABCShadow::sampleFromMH() {
-    vector<Stats> samples = mcmcSim->mhSim(*rGen, *model, samplerIt, samplerBurnin, samplerBy);
+    vector<Stats> samples = mcmcSim->mhSim(*rGen, *model, samplerIt, samplerBy, samplerBurnin);
     Stats avg{};
     int t = 1;
     for (auto el : samples) {
@@ -101,7 +103,9 @@ Stats ABCShadow::sampleFromMH() {
 }
 
 Stats ABCShadow::getCandidate(const Stats &theta){
-    int index = rGen->getUniformIntD(0, 2);
+    //int index = rGen->getUniformIntD(0, 2);
+    int index = rGen->getDiscreteInt(randomMask);
+
     Stats candidate = theta;
     double oldVal = candidate[index];
     double newVal = rGen->getUnifornRealD(oldVal - delta[index] / 2, oldVal + delta[index] / 2);

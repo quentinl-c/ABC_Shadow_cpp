@@ -75,6 +75,7 @@ vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, const int it
     Stats stats(model.getStats(*graph));
 
     for (int gibbs_iter{0}; gibbs_iter < iter_max; ++gibbs_iter) {
+
         if (gibbs_iter >= burnin && gibbs_iter % by == 0) {
             res.push_back(stats);
         }
