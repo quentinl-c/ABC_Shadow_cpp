@@ -25,6 +25,9 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
             mat[i][j] = Node(i,j, NodeType::INTER);
         }
     }
+    /*
+     Create the neighbourhood for every node labelled as INTRA : (i,j) such as  0 <= i, j < inSize and i < j
+     */
     for(int i{0}; i < inSize; i++) {
         for(int j{i+1}; j < inSize; j++) {
             //std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
@@ -59,9 +62,15 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
         }
     }
     
+    /*
+     Create the neighbourhood for every node labelled as INTER  (i,j) such as  0 <= i < inSize, inSize <= j < inSize + outSize and i < j
+     Assumption :
+     - idx of INTRA nodes < idx of INTER nodes
+     - No interaction between two nodes labelled as INTER
+    */
     for (int i{0}; i < inSize; i++) {
         for(int j{inSize}; j < inSize + outSize; j++) {
-            for(int k{inSize}; k < inSize + outSize; k++) {
+            for(int k{inSize}; k < inSize + outSize; k++) { //INTRA (i,j) and INTER (k,l) such as i<j and k<l are neighbours only if i = k
                 if(k != j) {
                     mat[i][j].addNeighbour(mat[i][k].getLabel());
                 }

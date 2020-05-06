@@ -7,7 +7,7 @@ n: 100
 # Number of iterations to sample the auxiliary variable
 samplerIt: 500
 # Bounds of the proposal
-delta: 0.01, 0.01, 0.01
+delta: 0.005, 0.005, 0.005
 # size of the graph [might be overridden by cmd args]
 sizeIn: 12
 sizeOut: 8
