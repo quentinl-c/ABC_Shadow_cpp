@@ -17,4 +17,5 @@ simIter: 1200
 # Parameters of the model [might be overridden by cmd args]
 thetaPerf: -0.5,0.2,0.3
 # prefix of the output path
-name: paper_theta_fixed
+teamSizes: 10,10,10
+name: paper_theta_fixed_geo
