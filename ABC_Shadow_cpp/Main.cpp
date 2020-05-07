@@ -38,7 +38,7 @@ int main(int argc, const char * argv[]) {
     string action;
     string configPath;
     ConfigReader confReader{};
-    cout << argv[1] << endl;
+
     if(argc >= 3) {
         action = argv[1];
         configPath = argv[2];
@@ -54,6 +54,11 @@ int main(int argc, const char * argv[]) {
         string name = argv[3];
         cout << "name: " << name << endl;
         confReader.setName(name);
+        int inSize = std::atoi(argv[5]);
+        confReader.setSizeIn(inSize);
+        int outSize = std::atoi(argv[6]);
+        confReader.setSizeOut(outSize);
+        cout << "size: " << inSize << "," << outSize << endl;
         Stats stat = toStats(argv[4]);
         cout << "input vec: " << stat << endl;
         
@@ -65,7 +70,8 @@ int main(int argc, const char * argv[]) {
         }
     }
     
-    GraphWrapper* g = new GraphWrapper(confReader.getTeamSizes());
+
+    GraphWrapper* g = new GraphWrapper(confReader.getSizeIn(), confReader.getSizeOut());
     PottsModel* model = new PottsModel();
     RandomGen* rGen = new RandomGen(confReader.getSeed());
     MCMCSim* mcmc = new MCMCSim(g);
@@ -73,6 +79,7 @@ int main(int argc, const char * argv[]) {
     ofstream outputfile;
     outputfile.open(confReader.getName() + "_traces.csv", std::ios::out | std::ios::trunc);
     if( !outputfile) {
+        cout << "Ça marche pas" << endl;
         cerr << "Error: output file could not be opened" << endl;
         exit(-1);
     }
@@ -94,6 +101,7 @@ int main(int argc, const char * argv[]) {
         confReader.save(confReader.getName() + "_config.txt");
         time_start = clock_time::now();
         cout << "ABC Shadow is running ...  🚀 ⏳" << endl;
+        
         ABCShadow* abc = new ABCShadow(mcmc,
                                        model,
                                        rGen,
@@ -119,7 +127,6 @@ int main(int argc, const char * argv[]) {
         Stats yObs = avgTraces(res);
         cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
     } else if (action == "gibbs_sim") {
-        confReader.print();
         time_start = clock_time::now();
         model->setParams(confReader.getThetaPerf());
         vector<Stats> res = mcmc->gibbsSim(*rGen, *model, confReader.getSimIter(), confReader.getSimBy());

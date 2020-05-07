@@ -21,12 +21,13 @@ using std::vector;
 
 class GraphWrapper {
 private:
-    vector<size_t> teamSizes;
+    int inSize;
+    int outSize;
     vector<Node> nodeList;
 
 public:
 
-    GraphWrapper(const vector<size_t>& teamSizes);
+    GraphWrapper(const int inSize, const int outSize);
     ~GraphWrapper();
     void empty();
     vector<Node> &getNodes();
