@@ -8,9 +8,7 @@
 
 #include "ConfigReader.hpp"
 
-ConfigReader::ConfigReader() : sizeIn(12),
-                               sizeOut(8),
-                               seed(2018),
+ConfigReader::ConfigReader() : seed(2018),
                                iter(1002000),
                                n(200),
                                samplerIt(200),
@@ -23,14 +21,11 @@ ConfigReader::ConfigReader() : sizeIn(12),
                                delta(0.01, 0.01, 0.01),
                                yObs(),
                                simObs(true),
-                               randomMask({1, 1, 1}){}
+                               randomMask({1, 1, 1}),
+                               teamSizes({10,10,10}){}
 
 void ConfigReader::setAttr(string attrName, string val) {
-    if(attrName == "sizeIn"){
-        sizeIn = stoi(val);
-    } else if(attrName == "sizeOut") {
-        sizeOut = stoi(val);
-    } else if(attrName == "seed") {
+    if(attrName == "seed") {
         seed = stoi(val);
     } else if(attrName == "iter") {
         iter = stoi(val);
@@ -55,6 +50,8 @@ void ConfigReader::setAttr(string attrName, string val) {
         simObs = false;
     } else if(attrName == "randomMask") {
         randomMask = toVec(val.c_str());
+    } else if(attrName == "teamSizes"){
+        teamSizes = toSizetVec(toVec(val.c_str()));
     } else {
         cout << val << " discarded, " << attrName << " doesn't match any attribute." << endl;
     }
@@ -85,7 +82,12 @@ void ConfigReader::read() {
 
 void ConfigReader::print() {
     cout << "======== CONFIGURATION ========" << endl;
-    cout << "📄 size: " << sizeIn << "," << sizeOut << endl;
+    string tmp{"📄 teamSizes:"};
+    for(auto& s: teamSizes) {
+        
+        tmp += " " +  std::to_string(s);
+    }
+    cout << tmp << endl;
     cout << "📄 theta_0: " << theta0 << endl;
     cout << "📄 delta: " << delta << endl;
     cout << "📄 seed: " << seed << endl;
@@ -106,7 +108,11 @@ void ConfigReader::save(const string &path) {
     ofstream configfile;
     configfile.open(path, std::ios::out | std::ios::trunc);
     if (configfile.is_open()){
-        configfile << "size: " << sizeIn << "," << sizeOut << endl;
+        string tmp{"teamSizes:"};
+        for(auto& s: teamSizes) {
+            tmp += " " +  std::to_string(s);
+        }
+        configfile << tmp << endl;
         configfile << "theta_0: " << theta0 << endl;
         configfile << "delta: " << delta << endl;
         configfile << "seed: " << seed << endl;
@@ -127,10 +133,8 @@ void ConfigReader::save(const string &path) {
     }
     
 }
-void ConfigReader::setSizeIn(const int &s) {sizeIn = s;}
-int ConfigReader::getSizeIn() {return sizeIn;}
-void ConfigReader::setSizeOut(const int &s) {sizeOut = s;}
-int ConfigReader::getSizeOut() {return sizeOut;}
+vector<size_t> ConfigReader::getTeamSizes() {return teamSizes;}
+void ConfigReader::setTeamSizes(vector<size_t> newTeamSizes) {teamSizes = newTeamSizes;}
 int ConfigReader::getSeed() {return seed;}
 int ConfigReader::getIter() {return iter;}
 int ConfigReader::getN() {return n;}
@@ -187,13 +191,14 @@ vector<int> toVec(const char *input){
         s.erase(0, pos + delimiter.length());
     }
     vec.push_back(atof(s.c_str()));
-    if(vec.size() < 3) {
-        cerr << "Not the right input" << endl;
-        return vector<int>{1,1,1};
-    } else {
-        return vec;
-    }
+    return vec;
 }
 
 
-
+vector<size_t> toSizetVec(vector<int> input) {
+    vector<size_t> output{};
+    for(auto& el : input) {
+        output.push_back(el); // implicit arithmetic conversion
+    }
+    return output;
+}

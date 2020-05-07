@@ -26,15 +26,16 @@ using std::vector;
 
 Stats toStats(const char *input);
 vector<int> toVec(const char *input);
-
+vector<size_t> toSizetVec(vector<int> input);
 class ConfigReader {
     
 private:
-    int sizeIn, sizeOut, seed, iter, n, samplerIt, simIter, simBy;
+    int seed, iter, n, samplerIt, simIter, simBy;
     string name, path;
     Stats theta0, thetaPerf, delta, yObs;
     bool simObs;
-    vector<int> randomMask ;
+    vector<int> randomMask;
+    vector<size_t> teamSizes ;
     
     void setAttr(string attrName, string val);
 public:
@@ -44,10 +45,8 @@ public:
     void print();
     void save(const string &path);
     
-    void setSizeIn(const int &s);
-    int getSizeIn();
-    void setSizeOut(const int &s);
-    int getSizeOut();
+    vector<size_t> getTeamSizes();
+    void setTeamSizes(vector<size_t> newTeamSizes);
     int getSeed();
     int getIter();
     int getN();

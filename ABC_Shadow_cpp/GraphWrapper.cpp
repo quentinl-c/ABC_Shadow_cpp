@@ -8,31 +8,42 @@
 
 #include "GraphWrapper.hpp"
 
-GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
-    vector<vector<Node>> mat = vector<vector<Node>>(inSize);
-    nodeList = vector<Node>();
-    this->inSize = inSize;
-    this->outSize = outSize;
-    
-    for (int i{0}; i < inSize; i++) {
-        mat[i] = vector<Node>(inSize + outSize);
-
-        for (int j{i + 1}; j < inSize; j++) {
-            mat[i][j] = Node(i,j, NodeType::INTRA);
+GraphWrapper::GraphWrapper(const vector<size_t>& teamSizes) {
+    int totalSize = 0;
+    vector<size_t> affiliations = vector<size_t>();
+    for(size_t i{0}; i < teamSizes.size(); i++) {
+        totalSize += teamSizes[i];
+        
+        for(int j{0}; j < teamSizes[i]; j++) {
+            affiliations.push_back(i);
         }
+    
+    }
+    
+    vector<vector<Node>> mat = vector<vector<Node>>(totalSize);
+    nodeList = vector<Node>();
 
-        for(int j{inSize}; j < inSize + outSize; j ++) {
-            mat[i][j] = Node(i,j, NodeType::INTER);
+    this->teamSizes = teamSizes;
+    
+    for (int i{0}; i < totalSize; i++) {
+        mat[i] = vector<Node>(totalSize);
+        for (int j{0}; j < totalSize; j++) {
+            NodeType t;
+            if(affiliations[i] == affiliations[j]) {
+                t = NodeType::INTRA;
+            } else {
+                t = NodeType::INTER;
+            }
+            mat[i][j] = Node(i,j, t);
         }
     }
-    /*
-     Create the neighbourhood for every node labelled as INTRA : (i,j) such as  0 <= i, j < inSize and i < j
-     */
-    for(int i{0}; i < inSize; i++) {
-        for(int j{i+1}; j < inSize; j++) {
+    
+
+    for(int i{0}; i < totalSize; i++) {
+        for(int j{i+1}; j < totalSize; j++) {
             //std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
             //std::cout << i << ","<< j << " voisin de :\n";
-            for(int k{0}; k < inSize; k ++) {
+            for(int k{0}; k < totalSize; k ++) {
                 if (k < i) {
                     //std::cout << " 1 "<< k << "," << i << " | ";
                     mat[i][j].addNeighbour(mat[k][i].getLabel());
@@ -49,40 +60,10 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
                     mat[i][j].addNeighbour(mat[j][k].getLabel());
                 }
             }
-            
-            for(int k{inSize}; k < inSize + outSize; k++) {
-                mat[i][j].addNeighbour(mat[i][k].getLabel());
-                mat[i][k].addNeighbour(mat[i][j].getLabel());
-                
-                mat[i][j].addNeighbour(mat[j][k].getLabel());
-                mat[j][k].addNeighbour(mat[i][j].getLabel());
-            }
             nodeList.push_back(mat[i][j]);
             //std::cout << "\n";
         }
-    }
-    
-    /*
-     Create the neighbourhood for every node labelled as INTER  (i,j) such as  0 <= i < inSize, inSize <= j < inSize + outSize and i < j
-     Assumption :
-     - idx of INTRA nodes < idx of INTER nodes
-     - No interaction between two nodes labelled as INTER
-    */
-    for (int i{0}; i < inSize; i++) {
-        for(int j{inSize}; j < inSize + outSize; j++) {
-            for(int k{inSize}; k < inSize + outSize; k++) { //INTRA (i,j) and INTER (k,l) such as i<j and k<l are neighbours only if i = k
-                if(k != j) {
-                    mat[i][j].addNeighbour(mat[i][k].getLabel());
-                }
-            }
-        }
-    }
-    for (int i{0}; i < inSize; i++) {
-        for(int j{inSize}; j < inSize + outSize; j ++) {
-           nodeList.push_back(mat[i][j]);
-        }
-    }
-    
+    }    
 }
 
 GraphWrapper::~GraphWrapper() {}
