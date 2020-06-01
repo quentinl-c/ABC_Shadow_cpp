@@ -3,11 +3,11 @@ seed: 2019
 # Number of main iterations for ABC
 iter: 1002000
 # Number of shadow iterations for ABC
-n: 100
+n: 200
 # Number of iterations to sample the auxiliary variable
 samplerIt: 500
 # Bounds of the proposal
-delta: 0.01, 0.01, 0.01
+delta: 0.005, 0.005, 0.005
 # size of the graph [might be overridden by cmd args]
 sizeIn: 12
 sizeOut: 8
@@ -17,4 +17,4 @@ simIter: 1500
 # Parameters of the model [might be overridden by cmd args]
 thetaPerf: 0,0,0
 # prefix of the output path
-name: paper_theta0
+name: setup/paper_theta0
