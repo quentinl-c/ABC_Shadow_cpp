@@ -9,20 +9,20 @@
 #include "GraphWrapper.hpp"
 
 GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
-    vector<vector<Node>> mat = vector<vector<Node>>(inSize);
+    adj = vector<vector<Node>>(inSize);
     nodeList = vector<Node>();
     this->inSize = inSize;
     this->outSize = outSize;
     
     for (int i{0}; i < inSize; i++) {
-        mat[i] = vector<Node>(inSize + outSize);
+        adj[i] = vector<Node>(inSize + outSize);
 
         for (int j{i + 1}; j < inSize; j++) {
-            mat[i][j] = Node(i,j, NodeType::INTRA);
+            adj[i][j] = Node(i,j, NodeType::INTRA);
         }
 
         for(int j{inSize}; j < inSize + outSize; j ++) {
-            mat[i][j] = Node(i,j, NodeType::INTER);
+            adj[i][j] = Node(i,j, NodeType::INTER);
         }
     }
     /*
@@ -35,29 +35,29 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
             for(int k{0}; k < inSize; k ++) {
                 if (k < i) {
                     //std::cout << " 1 "<< k << "," << i << " | ";
-                    mat[i][j].addNeighbour(mat[k][i].getLabel());
+                    adj[i][j].addNeighbour(adj[k][i].getLabel());
                 }else if (k > i && k != j) {
                     //std::cout << " 2 " << i << "," << k << " | ";
-                    mat[i][j].addNeighbour(mat[i][k].getLabel());
+                    adj[i][j].addNeighbour(adj[i][k].getLabel());
                 }
                 
                 if (k < j && k != i) {
                     //std::cout << " 3 " << k << "," << j << " | ";
-                    mat[i][j].addNeighbour(mat[k][j].getLabel());
+                    adj[i][j].addNeighbour(adj[k][j].getLabel());
                 } else if (k > j) {
                     //std::cout << " 4 " << j << "," << k << " | ";
-                    mat[i][j].addNeighbour(mat[j][k].getLabel());
+                    adj[i][j].addNeighbour(adj[j][k].getLabel());
                 }
             }
             
             for(int k{inSize}; k < inSize + outSize; k++) {
-                mat[i][j].addNeighbour(mat[i][k].getLabel());
-                mat[i][k].addNeighbour(mat[i][j].getLabel());
+                adj[i][j].addNeighbour(adj[i][k].getLabel());
+                adj[i][k].addNeighbour(adj[i][j].getLabel());
                 
-                mat[i][j].addNeighbour(mat[j][k].getLabel());
-                mat[j][k].addNeighbour(mat[i][j].getLabel());
+                adj[i][j].addNeighbour(adj[j][k].getLabel());
+                adj[j][k].addNeighbour(adj[i][j].getLabel());
             }
-            nodeList.push_back(mat[i][j]);
+            nodeList.push_back(adj[i][j]);
             //std::cout << "\n";
         }
     }
@@ -72,14 +72,14 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
         for(int j{inSize}; j < inSize + outSize; j++) {
             for(int k{inSize}; k < inSize + outSize; k++) { //INTRA (i,j) and INTER (k,l) such as i<j and k<l are neighbours only if i = k
                 if(k != j) {
-                    mat[i][j].addNeighbour(mat[i][k].getLabel());
+                    adj[i][j].addNeighbour(adj[i][k].getLabel());
                 }
             }
         }
     }
     for (int i{0}; i < inSize; i++) {
         for(int j{inSize}; j < inSize + outSize; j ++) {
-           nodeList.push_back(mat[i][j]);
+           nodeList.push_back(adj[i][j]);
         }
     }
     
@@ -93,6 +93,13 @@ void GraphWrapper::empty() {
     }
 }
 
+vector<vector<Node>> &GraphWrapper::getAdj() {
+    return adj;
+}
+
+Node &GraphWrapper::getNode(int i,  int j) {
+    return adj[i][j];
+}
 
 vector<Node> &GraphWrapper::getNodes() {
     return nodeList;
@@ -105,3 +112,12 @@ Stats GraphWrapper::getInteractionStats() {
     }
     return stats / 2;
 }
+
+int GraphWrapper::getInSize() {
+    return inSize;
+}
+
+int GraphWrapper::getOutSize() {
+    return outSize;
+}
+ 

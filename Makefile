@@ -5,15 +5,16 @@ SDIR=ABC_Shadow_cpp
 
 SRC= $(wildcard $(SDIR)/*.cpp)
 OBJ= $(SRC:.cpp=.o)
-
+INCLUDE=-I$(shell brew --prefix libomp)/include
+LIB=-L$(shell brew --prefix libomp)/lib
 all: $(EXEC)
 
 %.o: %.cpp
-	$(CC) -o $@ -c $< $(CFLAGS) 
+	$(CC) -o $@ -c $< $(CFLAGS) $(INCLUDE)
 
 shadow: $(OBJ)
-	$(CC) -o $@ $^ 
+	$(CC) -o $@ $^ -I"$(brew --prefix libomp)/include" 
 
 
 clean:
-	rm -rf $(SDIR)/*.o
+	rm -rf $(SDIR)/*.o	

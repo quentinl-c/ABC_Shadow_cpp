@@ -23,6 +23,7 @@ class GraphWrapper {
 private:
     int inSize;
     int outSize;
+    vector<vector<Node>> adj;
     vector<Node> nodeList;
 
 public:
@@ -30,7 +31,11 @@ public:
     GraphWrapper(const int inSize, const int outSize);
     ~GraphWrapper();
     void empty();
+    int getInSize();
+    int getOutSize();
     vector<Node> &getNodes();
+    vector<vector<Node>> &getAdj();
+    Node &getNode(int i, int j);
     Stats getInteractionStats();
 };
 #endif /* GraphWrapper_hpp */

@@ -7,10 +7,11 @@
 //
 
 #include "RandomGen.hpp"
+RandomGen::RandomGen(): RandomGen(DEFAULT_SEED) {}
 
 RandomGen::RandomGen(unsigned int seed): seed{seed}, r_engine{seed}, unifIntD{0, 1}, unifRealD{} {}
 
-mt19937 &RandomGen::getEngine() {
+mt19937 & RandomGen::getEngine() {
     return r_engine;
 }
 
@@ -42,4 +43,7 @@ double RandomGen::getUnifornRealD(double min, double max) {
     return dist(r_engine);
 }
 
+mt19937 RandomGen::getNewEngine(int seed) {
+    return mt19937(seed);
+}
 

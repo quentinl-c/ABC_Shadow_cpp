@@ -34,7 +34,6 @@ void saveSimTraces(ofstream &outputfile, const vector<Stats> &traces);
 Stats avgTraces(const vector<Stats> &traces);
 
 int main(int argc, const char * argv[]) {
-    
     string action;
     string configPath;
     ConfigReader confReader{};
@@ -76,15 +75,16 @@ int main(int argc, const char * argv[]) {
     RandomGen* rGen = new RandomGen(confReader.getSeed());
     MCMCSim* mcmc = new MCMCSim(g);
 
+    std::chrono::time_point<clock_time> time_start{};
+
     ofstream outputfile;
     outputfile.open(confReader.getName() + "_traces.csv", std::ios::out | std::ios::trunc);
     if( !outputfile) {
-        cout << "Ça marche pas" << endl;
         cerr << "Error: output file could not be opened" << endl;
         exit(-1);
     }
 
-    std::chrono::time_point<clock_time> time_start{};
+    //std::chrono::time_point<clock_time> time_start{};
 
     if (action == "abc_estim") {
         if(confReader.isSimObs()) {
@@ -135,6 +135,24 @@ int main(int argc, const char * argv[]) {
         Stats yObs = avgTraces(res);
         outputfile.close();
         cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
+
+
+        int threadsNbr = 4;
+
+        mcmc->parallelSetup(confReader.getSimIter(), threadsNbr, *rGen);
+
+        time_start = clock_time::now();
+        mcmc->generateIndependentNodes();
+        vector<Stats> res2 = mcmc->parallelGibbsSim( *model,threadsNbr, confReader.getSimIter());
+        
+        /*for(auto &r : res2) {
+            std::cout << r << endl;
+        }*/
+        saveSimTraces(outputfile, res);
+        confReader.save(confReader.getName() + "_config_gibbs_sim.txt");
+        Stats yObs2 = avgTraces(res2);
+        outputfile.close();
+        cout << "📊 End Sim generated observation : " << yObs2 << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
     } else {
         cerr << "No action matches to " << action << " [abc_estim] [mh_sim] [gibbs_sim]" << endl;
         exit(-2);

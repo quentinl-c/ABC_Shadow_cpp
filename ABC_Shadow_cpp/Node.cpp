@@ -132,10 +132,11 @@ void Node::applyPottsChangeStats(Stats &stats, const State &newState) {
 void Node::getGibbsChangeStatistics(Stats &stats) {
     int idx{0};
     int activation = static_cast<int>(activationVal);
+
     for(size_t i{0}; i < neighbourhood.size(); i++){
-        shared_ptr<NodeType>&l = neighbourhood[i];
-        if(*l != NodeType::NIL) {
-            idx = activation + static_cast<int>(*l) - 2;
+        NodeType l = *neighbourhood[i];
+        if(l != NodeType::NIL) {
+            idx = activation + static_cast<int>(l) - 2;
             stats.increment(idx);
         }
      }
