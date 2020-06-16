@@ -73,7 +73,6 @@ Stats PottsModel::applyGibbsProposal(Node* node, RandomGen &rGen) {
     upProb = exp(params.dot(up));
     upProb = upProb / (1+ upProb);
 
- 
     if(upProb > rGen.getUnifornRealD()) {
         newState = State::ENABLED;
     } else {

@@ -75,6 +75,7 @@ int main(int argc, const char * argv[]) {
     RandomGen* rGen = new RandomGen(confReader.getSeed());
     MCMCSim* mcmc = new MCMCSim(g);
 
+    std::cout << "Number of nodes " << g->getNodes().size() << endl;
     std::chrono::time_point<clock_time> time_start{};
 
     ofstream outputfile;
@@ -136,7 +137,7 @@ int main(int argc, const char * argv[]) {
         outputfile.close();
         cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
 
-
+        mcmc->reset();
         int threadsNbr = 4;
 
         mcmc->parallelSetup(confReader.getSimIter(), threadsNbr, *rGen);

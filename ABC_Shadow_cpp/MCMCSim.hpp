@@ -21,6 +21,7 @@
 
 using std::exp;
 using std::min;
+using std::max;
 using std::iota;
 using std::shuffle;
 using std::copy;
@@ -28,14 +29,15 @@ using std::copy;
 class MCMCSim {
 private:
     GraphWrapper *graph;
-    int chunkSize, // number of labels included in one chunk
-    chunkSizeIn,
+    int chunkSizeIn,
     chunkSizeOut,
+    chunksNbrIn,
+    chunksNbrOut,
     chunksNbr, // number of chunks required to have ennough nodes in one iter (close to the actual number of nodes in the graphe-
     threadsNbr,
     parallelSimIters;
     
-    vector<int> chunks, poolIn, poolOut;
+    vector<vector<int>> chunks, poolIn, poolOut;
     vector<RandomGen> rngs;
     
 public:

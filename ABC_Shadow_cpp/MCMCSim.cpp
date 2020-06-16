@@ -9,7 +9,6 @@
 #include "MCMCSim.hpp"
 
 MCMCSim::MCMCSim(GraphWrapper *g): graph(g),
-                                   chunkSize(0),
                                    chunkSizeIn(0),
                                    chunkSizeOut(0),
                                    chunksNbr(0),
@@ -79,7 +78,6 @@ vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_
 
 vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by, const int burnin) {
     vector<Stats> res{};
-    
     vector<Node> &nodes{graph->getNodes()};
     size_t nodeNbr = nodes.size();
     Stats stats(model.getStats(*graph));
@@ -94,7 +92,7 @@ vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, const int it
             stats += model.applyGibbsProposal(&current_node, rGen);
         }
     }
-    
+
     return res;
 }
 
@@ -114,101 +112,74 @@ void MCMCSim::parallelSetup(const int & simIter, const int & threadsNbr, RandomG
     
     int const inNodes = inSize * (inSize - 1) / 2;
     int const outNodes = inSize * outSize;
-    int const totalNodes = inNodes + outNodes;
+
     
     std::cout << "inNodes " << inNodes << std::endl;
     std::cout << "outNodes " << outNodes << std::endl;
     
-    double const outNodesProportion = (double) outNodes / totalNodes;
-    std::cout << outNodesProportion << std::endl;
-    int const ratio = (2.0 - outNodesProportion) / outNodesProportion;
+    chunkSizeIn = inSize % 2 == 0 ? inSize : inSize - 1;
+    chunkSizeOut = min(inSize, outSize) * 2;
     
-    chunkSizeOut = min((int) inSize / ratio, outSize);
-    chunkSizeIn = chunkSizeOut * ratio;
     
-    if (ratio < 2) {
-        chunkSizeOut -= 2; // At least one inNode must be computed
-    }
+    chunksNbrIn = max(inNodes / (chunkSizeIn / 2), 1); // number of chunks "In" for one iteration
+    chunksNbrOut = max(outNodes / (chunkSizeOut / 2), 1); // number of chunks "Out" for one iteration
+    std::cout << "Generated nodes " <<(chunkSizeIn / 2) * chunksNbrIn +  (chunkSizeOut / 2) * chunksNbrOut << std::endl;
+    chunksNbr = chunksNbrIn + chunksNbrOut; // number of chunks for one iteration
+    chunks = vector<vector<int>>(chunksNbr * simIter);
     
-    chunkSize = chunkSizeIn + chunkSizeOut;
-    
-    if (chunkSize % 2 != 0) { // if the chunksize is uneven, decrement the most import side of the chunk (In/Out)
-        if (chunkSizeIn - chunkSizeOut > 2) {
-            chunkSizeIn --;
-        } else {
-            chunkSizeOut --;
+    for (int iter = 0; iter < simIter; iter ++) {
+        for(int cId = 0; cId  < chunksNbr; cId ++) {
+            const int idx = iter * chunksNbr + cId;
+            if (cId < chunksNbrIn) {
+                chunks[idx] = vector<int>(chunkSizeIn);
+            } else {
+                chunks[idx] = vector<int>(chunkSizeOut);
+            }
         }
-        chunkSize --;
     }
-    std::cout << "chunkSizeIn " << chunkSizeIn << std::endl;
-    std::cout << "chunkSizeOut " << chunkSizeOut << std::endl;
     
-    chunksNbr = totalNodes / (chunkSize / 2);
-    
-    chunks = vector<int>(chunksNbr * chunkSize * simIter);
-    poolIn = vector<int>(chunksNbr * inSize * simIter);
-    poolOut = vector<int>(chunksNbr * outSize * simIter);
-    
-    for (int i = 0; i < poolIn.size(); i += inSize) {
-        iota(poolIn.begin() + i, poolIn.begin() + i + inSize, 0);
-        assert(i + inSize <= poolIn.size());
+    poolIn = vector<vector<int>>(threadsNbr);
+    poolOut = vector<vector<int>>(threadsNbr);
+
+    for (int i = 0; i < poolIn.size(); i++) {
+        poolIn[i] = vector<int>(inSize);
+        iota(poolIn[i].begin(), poolIn[i].end(), 0);
     }
-    assert(poolIn.back() == inSize - 1);
-    for (int i = 0; i < poolOut.size(); i+= outSize) {
-        iota(poolOut.begin() + i, poolOut.begin() + i + outSize, inSize);
-        assert(i + outSize <= poolOut.size());
+
+    for (int i = 0; i < poolOut.size(); i++) {
+        poolOut[i] = vector<int>(outSize);
+        iota(poolOut[i].begin(), poolOut[i].end(), inSize);
     }
-    assert(poolOut.back() == inSize + outSize - 1);
 }
 
 void MCMCSim::generateIndependentNodes() {
-    std::cout << "test " << threadsNbr << std::endl;
+
     omp_set_num_threads(threadsNbr);
-            std::cout << "chunk size " << chunks.size() << std::endl;
     #pragma omp parallel
     {
-    const int inSize = graph->getInSize();
-    const int outSize = graph->getOutSize();
-    const int threadId = omp_get_thread_num();
+        const int thid = omp_get_thread_num();
 
-    #pragma omp barrier
+        #pragma omp barrier
     
-    #pragma omp for
-    for (int i = 0; i < chunksNbr * parallelSimIters ; i++) {
-        //#pragma omp critical
-        //std::cout << "th, i " << threadId << " " << i << std::endl;
-        shuffle(poolIn.begin() + i * inSize, poolIn.begin() + (i + 1) * inSize, rngs[threadId].getEngine());
-        //assert((i + 1) * inSize <= poolIn.size());
-
-        shuffle(poolOut.begin() + i * outSize, poolOut.begin() + (i + 1) * outSize, rngs[threadId].getEngine());
-        //assert((i + 1) * outSize <= poolOut.size());
-        const int exclusiveIn = chunkSizeIn - chunkSizeOut;
-        //std::cout << "exclusiveIn " << exclusiveIn << std::endl;
-        //assertm(i * inSize < poolIn.size(), "i * inSize < poolIn.size()");
-        //assertm(i * chunkSize + exclusiveIn < chunks.size(), "i * chunkSize < chunks.size()");
-        copy(poolIn.begin() + i * inSize, poolIn.begin() + i * inSize + exclusiveIn, chunks.begin() + i * chunkSize);
+        #pragma omp for
+        for (int iter = 0; iter < parallelSimIters ; iter++) {
         
-        int index = exclusiveIn;
-        for (int j = exclusiveIn; j < chunkSize; j += 2) {
-            chunks[i * chunkSize + j] = poolIn[i * inSize + index];
-            //assert(i * chunkSize + j < chunks.size());
-            //assert(i * inSize + index < poolIn.size());
-            chunks[i * chunkSize + j + 1] = poolOut[i * outSize + index - exclusiveIn];
-            //assert(i * chunkSize + j + 1 < chunks.size());
-            //assert(i * outSize + index - exclusiveIn < chunks.size());
-            index++;
+            for (int cId = 0; cId < chunksNbr; cId++) {
+                const int idx = iter * chunksNbr + cId;
+                shuffle(poolIn[thid].begin(), poolIn[thid].end(), rngs[thid].getEngine());
+                if (cId < chunksNbrIn) {
+                    copy(poolIn[thid].begin(), poolIn[thid].begin() + chunkSizeIn, chunks[idx].begin());
+                } else {
+                    shuffle(poolOut[thid].begin(), poolOut[thid].end(), rngs[thid].getEngine());
+                    for (int i = 0; i < chunks[idx].size(); i+=2) {
+                        chunks[idx][i] = poolIn[thid][i / 2];
+                        chunks[idx][i + 1] = poolOut[thid][i / 2];
+                    }
+                }
+            }
+    
         }
-        //auto it = std::unique(chunks.begin() + i * chunkSize, chunks.begin() + (i + 1) * chunkSize);
-        //assert(it == chunks.begin() + (i + 1) * chunkSize);
     }
-    }
-    /*for(int j = 0; j < chunks.size(); j ++) {
-        if (j % chunkSize == 0) {
-            std::cout << " || ";
-        }
-        std::cout << chunks[j] << " ";
-    }
-    std::cout << std::endl;*/
 }
 
 bool MCMCSim::isParallelSetupReady(const int threads_nbr) {
@@ -216,32 +187,33 @@ bool MCMCSim::isParallelSetupReady(const int threads_nbr) {
 }
 
 vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr, const int sim_iter, const int by, const int burnin) {
+
     vector<Stats> res{};
     Stats stats(model.getStats(*graph));
-    int iter_max = sim_iter * chunksNbr;
-    int gibbs_iter, chunk;
+    size_t chunk, nid;
     
     omp_set_num_threads(threadsNbr);
     
-    #pragma omp parallel private(gibbs_iter, chunk)
+    #pragma omp parallel private(chunk, nid)
     {
         int thid = omp_get_thread_num();
         RandomGen & rng = rngs[thid];
         Stats local_stats{};
+        int counter{0};
 
         #pragma omp barrier
-        for (gibbs_iter = 0; gibbs_iter < iter_max; gibbs_iter ++) {
+        for (chunk = 0; chunk < chunks.size(); chunk ++) {
             local_stats.reset();
-            #pragma omp for schedule(static)
-            for(chunk = 0; chunk < chunkSize; chunk +=2) {
+            #pragma omp for
+            for(nid = 0; nid < chunks[chunk].size(); nid +=2) {
                
-                int i = chunks[gibbs_iter + chunk];
-                int j = chunks[gibbs_iter + chunk + 1];
-                #pragma omp critical
-                std::cout << thid << " => " << gibbs_iter << " | " << chunk << " : " << i << ", " << j << std::endl;
+                int i = chunks[chunk][nid];
+                int j = chunks[chunk][nid + 1];
+                //#pragma omp critical
+                //std::cout << thid << " => " << chunk << " | " << nid << " : " << i << ", " << j << std::endl;
+                counter ++;
                 Node & node = i < j ? graph->getNode(i, j) : graph->getNode(j, i);
                 local_stats += model.applyGibbsProposal(&node, rng);
-                
             }
             #pragma omp critical
             stats += local_stats;
@@ -250,11 +222,15 @@ vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr
             
             #pragma omp single
             {
-                if (gibbs_iter % chunksNbr == 0) {
+                if (chunk % chunksNbr == 0) {
                     res.push_back(stats);
                 }
             }
         }
+        #pragma omp critical
+        std::cout << "Counter " << counter << std::endl;
+//#pragma omp critical
+//        std::cout << "Time taken by thread " << thid << " " << wtime << "s." << std::endl;
     }
     
     return res;
