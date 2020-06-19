@@ -14,7 +14,8 @@
 #include "GraphWrapper.hpp"
 #include "Stats.hpp"
 #include "RandomGen.hpp"
-
+#include <cassert>
+#define assertm(exp, msg) assert(((void)msg, exp))
 using std::exp;
 
 class PottsModel {
@@ -36,6 +37,7 @@ public:
     double getDelta(GraphWrapper &g, Node n, NodeType newtype);
     void applyChangeStats(Stats &delta_stat, const State &newState, Node* node);
     Stats applyGibbsProposal(Node* node, RandomGen &rGen);
+    Stats applyGibbsProposalParallel(Node* node, GraphWrapper* graph, RandomGen &rGen);
     State getNewProposal(RandomGen &rGen);
     Stats getStats(GraphWrapper &g);
     Stats getParams();

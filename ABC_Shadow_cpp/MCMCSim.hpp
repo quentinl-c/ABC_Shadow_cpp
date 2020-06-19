@@ -16,6 +16,7 @@
 #include "GraphWrapper.hpp"
 #include "RandomGen.hpp"
 #include "omp.h"
+#include <chrono> // for std::chrono functions  
 #include <cassert>
 #define assertm(exp, msg) assert(((void)msg, exp))
 
@@ -25,6 +26,9 @@ using std::max;
 using std::iota;
 using std::shuffle;
 using std::copy;
+
+using clock_time = std::chrono::high_resolution_clock;
+using second_t = std::chrono::duration<double, std::ratio<1> >;
 
 class MCMCSim {
 private:

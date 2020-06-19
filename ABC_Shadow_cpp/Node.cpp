@@ -41,8 +41,12 @@ void Node::addNeighbours(vector<Node> &neighbourhoodNode){
     }
 }
 
-NodeName Node::getName() {
+NodeName Node::getName() const {
     return nodeName;
+}
+
+NodeType Node::getActivationVal() {
+    return activationVal;
 }
 
 shared_ptr<NodeType> Node::getLabel() {
@@ -71,7 +75,7 @@ void Node::updateNodeState(const State newState) {
     }
 }
 
-State Node::getNodeState() {
+State Node::getNodeState() const {
     if(*label == NodeType::NIL) {
         return State::DISABLED;
     } else {
@@ -132,7 +136,6 @@ void Node::applyPottsChangeStats(Stats &stats, const State &newState) {
 void Node::getGibbsChangeStatistics(Stats &stats) {
     int idx{0};
     int activation = static_cast<int>(activationVal);
-
     for(size_t i{0}; i < neighbourhood.size(); i++){
         NodeType l = *neighbourhood[i];
         if(l != NodeType::NIL) {

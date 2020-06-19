@@ -44,12 +44,13 @@ private:
 public:
     Node();
     Node(int i, int j, NodeType activationVal);
-    NodeName getName();
+    NodeName getName() const;
+    NodeType getActivationVal();
     void addNeighbour(const shared_ptr<NodeType> neighbourType);
     void addNeighbours(vector<Node> &neighbourhood);
     void setNodeType(const NodeType newLabel);
     void updateNodeState(const State newState);
-    State getNodeState();
+    State getNodeState() const;
     shared_ptr<NodeType> getLabel();
     vector<shared_ptr<NodeType>> &getNeighbourhood();
     Stats getInteractionStats();

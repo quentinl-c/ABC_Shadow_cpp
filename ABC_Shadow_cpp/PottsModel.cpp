@@ -90,3 +90,43 @@ Stats PottsModel::applyGibbsProposal(Node* node, RandomGen &rGen) {
     }
     
 }
+
+Stats PottsModel::applyGibbsProposalParallel(Node* node, GraphWrapper* graph, RandomGen & rGen) {
+    Stats up{};
+    State newState, oldState{node->getNodeState()};
+    double upProb{0};
+    //node->getGibbsChangeStatistics(up);
+    NodeName nid = node->getName();
+    graph->computeChangeStatistics(nid.first, nid.second, up);
+    /*Stats up1{};
+    node->getGibbsChangeStatistics(up1);
+    assert(up == up1);*/
+    upProb = exp(params.dot(up));
+    upProb = upProb / (1+ upProb);
+
+   // if(upProb > rGen.getUnifornRealD()) {
+    if(upProb > rGen.getUnifornRealD()) {
+        newState = State::ENABLED;
+    } else {
+        newState = State::DISABLED;
+    }
+
+   node->updateNodeState(newState);
+    //Stats t1{}, t2{};
+   if(newState == oldState) {
+       return Stats();
+   }else if (newState == State::ENABLED) {
+       graph->enableNode(nid.first, nid.second);
+       /*graph->computeChangeStatistics(nid.first, nid.second, t1);
+       node->getGibbsChangeStatistics(t2);
+       assert(t1 == t2);*/
+       return up;
+   } else {
+       graph->disableNode(nid.first, nid.second);
+       /*graph->computeChangeStatistics(nid.first, nid.second, t1);
+       node->getGibbsChangeStatistics(t2);
+       assert(t1 == t2);*/
+       return -up;
+   }
+       
+}

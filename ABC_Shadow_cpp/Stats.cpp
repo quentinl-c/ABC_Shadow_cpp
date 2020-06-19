@@ -33,6 +33,7 @@ void Stats::decrement(const int &idx) {
     vec[idx] --;
 }
 
+
 void Stats::set(const int &idx, double newVal) {
     vec[idx] = newVal;
 }
@@ -43,6 +44,9 @@ void Stats::reset() {
     }
 }
 
+bool Stats::operator==(const Stats & s) const {
+    return vec[0] == s[0] && vec[1] == s[1] && vec[2] == s[2];
+}
 double Stats::dot(const Stats &s) const {
     double res{0};
     for(int i{0}; i < size; i++) {

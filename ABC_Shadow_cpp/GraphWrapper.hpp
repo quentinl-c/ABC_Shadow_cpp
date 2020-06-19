@@ -25,6 +25,10 @@ private:
     int outSize;
     vector<vector<Node>> adj;
     vector<Node> nodeList;
+    // Experimental:
+    vector<int> dimsIn;
+    vector<int> dimsOut;
+    
 
 public:
 
@@ -37,5 +41,13 @@ public:
     vector<vector<Node>> &getAdj();
     Node &getNode(int i, int j);
     Stats getInteractionStats();
+
+    // Experimental :
+    void enableNode(int i, int j);
+    void disableNode(int i, int j);
+    int getDimsIn(const int & idx);
+    int getDimsOut(const int & idx);
+    void computeChangeStatistics(const int &i, const int & j,  Stats & s);
+    Stats fastGetInteractionStats();
 };
 #endif /* GraphWrapper_hpp */

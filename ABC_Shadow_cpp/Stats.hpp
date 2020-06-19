@@ -35,6 +35,7 @@ public:
     void reset();
     double dot(const Stats &s) const;
     double operator[](const int &idx) const;
+    bool operator==(const Stats & s) const;
     Stats& operator+=(const Stats& s);
     Stats& operator/=(const double div);
     Stats& operator=(const Stats& s);

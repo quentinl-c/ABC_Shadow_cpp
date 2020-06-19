@@ -136,12 +136,15 @@ int main(int argc, const char * argv[]) {
         Stats yObs = avgTraces(res);
         outputfile.close();
         cout << "📊 End Sim generated observation : " << yObs << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
+        cout << "Stats " << g->getInteractionStats() << std::endl;
+        cout << "Fast stats " << g->fastGetInteractionStats() << std::endl;
 
         mcmc->reset();
         int threadsNbr = 4;
 
         mcmc->parallelSetup(confReader.getSimIter(), threadsNbr, *rGen);
 
+        std::cout << "start parallel sim " << std::endl;
         time_start = clock_time::now();
         mcmc->generateIndependentNodes();
         vector<Stats> res2 = mcmc->parallelGibbsSim( *model,threadsNbr, confReader.getSimIter());
@@ -149,7 +152,7 @@ int main(int argc, const char * argv[]) {
         /*for(auto &r : res2) {
             std::cout << r << endl;
         }*/
-        saveSimTraces(outputfile, res);
+        //saveSimTraces(outputfile, res);
         confReader.save(confReader.getName() + "_config_gibbs_sim.txt");
         Stats yObs2 = avgTraces(res2);
         outputfile.close();
