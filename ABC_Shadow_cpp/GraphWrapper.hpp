@@ -24,7 +24,7 @@ private:
     int inSize;
     int outSize;
     vector<vector<Node>> adj;
-    vector<Node> nodeList;
+    vector<NodeName> nodeList;
     // Experimental:
     vector<int> dimsIn;
     vector<int> dimsOut;
@@ -37,7 +37,7 @@ public:
     void empty();
     int getInSize();
     int getOutSize();
-    vector<Node> &getNodes();
+    const vector<NodeName> & getNodes() const;
     vector<vector<Node>> &getAdj();
     Node &getNode(int i, int j);
     Stats getInteractionStats();

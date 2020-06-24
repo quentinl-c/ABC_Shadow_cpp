@@ -7,7 +7,7 @@
 //
 
 #include "MCMCSim.hpp"
-
+Stats applyGibbsProposalParallel(const int i, const int j, GraphWrapper & graph, Stats params, unsigned * seed);
 MCMCSim::MCMCSim(GraphWrapper *g): graph(g),
                                    chunkSizeIn(0),
                                    chunkSizeOut(0),
@@ -33,7 +33,7 @@ void MCMCSim::reset() {
 vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_max, const int by, const int burnin) {
     vector<Stats> res{};
 
-    vector<Node> &nodes{graph->getNodes()};
+    vector<NodeName> nodes{graph->getNodes()};
     size_t nodeNbr = nodes.size();
     
     NodeType old_label;
@@ -55,8 +55,8 @@ vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_
         
         for (size_t i{0}; i < nodeNbr; i++) {
 
-            Node &current_node = nodes[i];
-            old_label = *current_node.getLabel();
+            Node &current_node = graph->getNode(nodes[i].first, nodes[i].second);
+            old_label = current_node.getLabel();
             new_state = model.getNewProposal(rGen);
 
             model.applyChangeStats(*delta_stats, new_state, &current_node);
@@ -78,30 +78,27 @@ vector<Stats> MCMCSim::mhSim(RandomGen &rGen, PottsModel& model, const int iter_
 
 vector<Stats> MCMCSim::gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by, const int burnin) {
     vector<Stats> res{};
-    vector<Node> &nodes{graph->getNodes()};
+    const vector<NodeName> & nodes {graph->getNodes()};
     size_t nodeNbr = nodes.size();
     //Stats stats(model.getStats(*graph));
     Stats stats{};
-    std::chrono::time_point<clock_time> time_start{};
+//    std::chrono::time_point<clock_time> time_start{};
     vector<double> times{};
-    double duration;
-    
+//    double duration;
+    unsigned seed = rGen.getSeed();
     for (int gibbs_iter{0}; gibbs_iter < iter_max; ++gibbs_iter) {
 
         if (gibbs_iter >= burnin && gibbs_iter % by == 0) {
             res.push_back(stats);
         }
         for (size_t i{0}; i < nodeNbr; i++) {
-            Node &current_node = nodes[i];
-            time_start = clock_time::now();
-            // stats += model.applyGibbsProposal(&current_node, rGen);
-            stats += model.applyGibbsProposalParallel(&current_node, graph, rGen);
-            duration = std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count();
-            times.push_back(duration);
+            NodeName current_node = nodes[i];
+            Node & node = graph->getNode(current_node.first, current_node.second);
+            stats += model.applyGibbsProposalParallel(&node, graph, &seed);
         }
     }
-    double average = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-    std::cout << "average " << average << std::endl;
+    //double average = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
+    //std::cout << "average " << average << std::endl;
     return res;
 }
 
@@ -198,7 +195,7 @@ bool MCMCSim::isParallelSetupReady(const int threads_nbr) {
     return parallelSimIters != 0 && chunks.size() != 0 && rngs.size() != 0;
 }
 
-vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr, const int sim_iter, const int by, const int burnin) {
+vector<Stats> parallelGibbsSim(PottsModel &model, GraphWrapper & graph, vector<vector<int>> & chunks, const int chunksNbr, const unsigned baseSeed, const int threadsNbr, const int sim_iter, const int by, const int burnin) {
 
     vector<Stats> res{};
     //Stats stats(model.getStats(*graph));
@@ -212,17 +209,17 @@ vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr
         int thid = omp_get_thread_num();
         int thNbr = omp_get_num_threads();
         vector<double> times{};
-        RandomGen & rng = rngs[thid];
+        //RandomGen & rng = rngs[thid];
+        Stats params = model.getParams();
         Stats local_stats{};
-
-        size_t lowerBound = (double) thid * graph->getInSize() / (double) thNbr;
+        unsigned seed = baseSeed * (1 + thid * 31) ;
+        size_t lowerBound = (double) thid * graph.getInSize() / (double) thNbr;
        // #pragma omp critical
         //std::cout << thid << " lower bond " << lowerBound << std::endl;
     
-        size_t upperBound = (double) (thid + 1) * graph->getInSize() / (double) thNbr;
+        size_t upperBound = (double) (thid + 1) * graph.getInSize() / (double) thNbr;
         //#pragma omp critical
         //std::cout << thid << " upper bound " << upperBound << std::endl;
-        
         #pragma omp barrier
         for (chunk = 0; chunk < chunks.size(); chunk ++) {
             local_stats.reset();
@@ -233,13 +230,13 @@ vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr
                 int j = chunks[chunk][nid] <=  chunks[chunk][nid + 1] ? chunks[chunk][nid + 1] : chunks[chunk][nid];
                 
                 if (lowerBound <= i && i < upperBound) {
-                    Node & node = i < j ? graph->getNode(i, j) : graph->getNode(j, i);
-                    const double start = omp_get_wtime();
+                    //Node & node = i < j ? graph->getNode(i, j) : graph->getNode(j, i);
+                    //const double start = omp_get_wtime();
                     //local_stats += model.applyGibbsProposal(&node, rng);
-                    local_stats += model.applyGibbsProposalParallel(&node, graph, rng);
+                    local_stats += applyGibbsProposalParallel(i,j, graph, params, &seed);
     
-                    const double duration = omp_get_wtime() - start;
-                    times.push_back(duration);
+                    //const double duration = omp_get_wtime() - start;
+                    //times.push_back(duration);
                 }
             }
             #pragma omp critical
@@ -254,10 +251,62 @@ vector<Stats> MCMCSim::parallelGibbsSim(PottsModel &model, const int threads_nbr
                 }
             }
         }
-        double average = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
-        std::cout << "Average time " << average << std::endl;
+        //double average = std::accumulate(times.begin(), times.end(), 0.0) / times.size();
+        //std::cout << "Average time " << average << std::endl;
 
     }
     
     return res;
+}
+
+Stats applyGibbsProposalParallel(const int i, const int j, GraphWrapper & graph, Stats params, unsigned * seed) {
+    Stats up{};
+    Node & node = graph.getNode(i, j);
+    State newState{};
+    State oldState = node.getLabel() != NodeType::NIL ? State::ENABLED : State::DISABLED ;
+    double upProb{0};
+    NodeName nid = node.getName();
+    NodeType activation = node.getActivationVal();
+    const int activationVal = static_cast<int>(activation);
+    //graph->computeChangeStatistics(nid.first, nid.second, up);
+    int inCount = graph.getDimsIn(i);
+    if (oldState == State::ENABLED && activation == NodeType::INTRA) inCount --;
+    
+    int outCount = graph.getDimsOut(i);
+    if (oldState == State::ENABLED && activation == NodeType::INTER) outCount --;
+
+    if (activation == NodeType::INTRA) {
+        inCount += graph.getDimsIn(j);
+        if (oldState == State::ENABLED) inCount --;
+        
+        outCount += graph.getDimsOut(j);
+     }
+    
+     int idx = activationVal + static_cast<int>(NodeType::INTRA) - 2;
+    
+     up.set(idx, inCount);
+     idx = activationVal + static_cast<int>(NodeType::INTER) - 2 ;
+     up.set(idx, outCount);
+    
+    upProb = exp(params.dot(up));
+    upProb = upProb / (1+ upProb);
+
+    double r = (double) rand_r(seed) / (double) RAND_MAX;
+    if(upProb > r) {
+    newState = State::ENABLED;
+    } else {
+    newState = State::DISABLED;
+    }
+
+    node.updateNodeState(newState);
+
+    if(newState == oldState) {
+        return Stats();
+    }else if (newState == State::ENABLED) {
+        graph.enableNode(nid.first, nid.second);
+        return up;
+    } else {
+        graph.disableNode(nid.first, nid.second);
+        return -up;
+    }
 }

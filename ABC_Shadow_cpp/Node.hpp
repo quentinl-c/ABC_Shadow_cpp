@@ -37,25 +37,25 @@ class Node {
 private:
     NodeName nodeName;
     NodeType activationVal;
-    shared_ptr<NodeType> label;
-    vector<shared_ptr<NodeType>> neighbourhood;
+    NodeType label;
+    //vector<shared_ptr<NodeType>> neighbourhood;
     
 
 public:
     Node();
     Node(int i, int j, NodeType activationVal);
     NodeName getName() const;
-    NodeType getActivationVal();
-    void addNeighbour(const shared_ptr<NodeType> neighbourType);
-    void addNeighbours(vector<Node> &neighbourhood);
+    NodeType getActivationVal() const;
+    //void addNeighbour(const shared_ptr<NodeType> neighbourType);
+    //void addNeighbours(vector<Node> &neighbourhood);
     void setNodeType(const NodeType newLabel);
     void updateNodeState(const State newState);
     State getNodeState() const;
-    shared_ptr<NodeType> getLabel();
-    vector<shared_ptr<NodeType>> &getNeighbourhood();
-    Stats getInteractionStats();
-    void getGibbsChangeStatistics(Stats &stats);
-    void applyPottsChangeStats(Stats &stats, const State &newState);
+    NodeType getLabel() const;
+    //vector<shared_ptr<NodeType>> &getNeighbourhood();
+    //Stats getInteractionStats();
+    //void getGibbsChangeStatistics(Stats &stats);
+    //void applyPottsChangeStats(Stats &stats, const State &newState);
     
 };
 #endif /* Node_hpp */

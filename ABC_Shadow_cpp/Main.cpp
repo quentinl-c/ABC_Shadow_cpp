@@ -147,7 +147,7 @@ int main(int argc, const char * argv[]) {
         std::cout << "start parallel sim " << std::endl;
         time_start = clock_time::now();
         mcmc->generateIndependentNodes();
-        vector<Stats> res2 = mcmc->parallelGibbsSim( *model,threadsNbr, confReader.getSimIter());
+        vector<Stats> res2 = parallelGibbsSim( *model, *g, mcmc->chunks, mcmc->chunksNbr, rGen->getSeed(), threadsNbr, confReader.getSimIter());
         
         /*for(auto &r : res2) {
             std::cout << r << endl;

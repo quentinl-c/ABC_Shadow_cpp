@@ -30,9 +30,14 @@ using std::copy;
 using clock_time = std::chrono::high_resolution_clock;
 using second_t = std::chrono::duration<double, std::ratio<1> >;
 
+vector<Stats> parallelGibbsSim(PottsModel &model, GraphWrapper & graph, vector<vector<int>> & chunks, const int chunksNbr, const unsigned baseSeed, const int threadsNbr, const int sim_iter, const int by=1, const int burnin=0);
 class MCMCSim {
 private:
     GraphWrapper *graph;
+    
+    vector<RandomGen> rngs;
+    
+public:
     int chunkSizeIn,
     chunkSizeOut,
     chunksNbrIn,
@@ -42,9 +47,7 @@ private:
     parallelSimIters;
     
     vector<vector<int>> chunks, poolIn, poolOut;
-    vector<RandomGen> rngs;
     
-public:
     MCMCSim(GraphWrapper *g);
     ~MCMCSim();
     
@@ -57,7 +60,7 @@ public:
     bool isParallelSetupReady(const int threads_nbr);
     vector<Stats> mhSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by=1, const int burnin=0);
     vector<Stats> gibbsSim(RandomGen &rGen, PottsModel &model, const int iter_max, const int by=1, const int burnin=0);
-    vector<Stats> parallelGibbsSim(PottsModel &model, const int threads_nbr, const int iter_max, const int by=1, const int burnin=0);
+    //vector<Stats> parallelGibbsSim(PottsModel &model, const int threads_nbr, const int iter_max, const int by=1, const int burnin=0);
 };
 
 #endif /* MCMCSim_hpp */

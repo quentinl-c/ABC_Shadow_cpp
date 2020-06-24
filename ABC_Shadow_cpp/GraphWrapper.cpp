@@ -10,7 +10,7 @@
 
 GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
     adj = vector<vector<Node>>(inSize);
-    nodeList = vector<Node>();
+    nodeList = vector<NodeName>();
     dimsIn = vector<int>(inSize);
     dimsOut = vector<int>(inSize);
     
@@ -30,66 +30,16 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
         }
     }
     std::cout << "Nodes in " << inCounter << std::endl;
-    /*
-     Create the neighbourhood for every node labelled as INTRA : (i,j) such as  0 <= i, j < inSize and i < j
-     */
+    
+    
     for(int i{0}; i < inSize; i++) {
         for(int j{i+1}; j < inSize; j++) {
-            /*std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
-            std::cout << i << ","<< j << " voisin de :\n";*/
-            for(int k{0}; k < inSize; k ++) {
-                if (k < i) {
-                    //std::cout << " 1 "<< k << "," << i << " | ";
-                    adj[i][j].addNeighbour(adj[k][i].getLabel());
-                }else if (k > i && k != j) {
-                    //std::cout << " 2 " << i << "," << k << " | ";
-                    adj[i][j].addNeighbour(adj[i][k].getLabel());
-                }
-                
-                if (k < j && k != i) {
-                    //std::cout << " 3 " << k << "," << j << " | ";
-                    adj[i][j].addNeighbour(adj[k][j].getLabel());
-                } else if (k > j) {
-                    //std::cout << " 4 " << j << "," << k << " | ";
-                    adj[i][j].addNeighbour(adj[j][k].getLabel());
-                }
-            }
-            
-            for(int k{inSize}; k < inSize + outSize; k++) {
-                adj[i][j].addNeighbour(adj[i][k].getLabel());
-                adj[i][k].addNeighbour(adj[i][j].getLabel());
-                
-                adj[i][j].addNeighbour(adj[j][k].getLabel());
-                adj[j][k].addNeighbour(adj[i][j].getLabel());
-            }
-            nodeList.push_back(adj[i][j]);
-            //std::cout << "\n";
-        }
-    }
-    //std::cout << "============ INTER ============" << std::endl;
-    
-    /*
-     Create the neighbourhood for every node labelled as INTER  (i,j) such as  0 <= i < inSize, inSize <= j < inSize + outSize and i < j
-     Assumption :
-     - idx of INTRA nodes < idx of INTER nodes
-     - No interaction between two nodes labelled as INTER
-    */
-    for (int i{0}; i < inSize; i++) {
-        for(int j{inSize}; j < inSize + outSize; j++) {
-            /*std::cout << "<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<\n";
-            std::cout << i << ","<< j << " voisin de :\n";*/
-            for(int k{inSize}; k < inSize + outSize; k++) { //INTRA (i,j) and INTER (k,l) such as i<j and k<l are neighbours only if i = k
-                if(k != j) {
-                     //std::cout << i << "," << k << " | ";
-                    adj[i][j].addNeighbour(adj[i][k].getLabel());
-                }
-            }
-            //std::cout << "\n";
+            nodeList.push_back(adj[i][j].getName());
         }
     }
     for (int i{0}; i < inSize; i++) {
         for(int j{inSize}; j < inSize + outSize; j ++) {
-           nodeList.push_back(adj[i][j]);
+            nodeList.push_back(adj[i][j].getName());
         }
     }
     
@@ -99,7 +49,8 @@ GraphWrapper::~GraphWrapper() {}
 
 void GraphWrapper::empty() {
     for(auto &n : nodeList) {
-        n.updateNodeState(State::DISABLED);
+        
+        adj[n.first][n.second].updateNodeState(State::DISABLED);
     }
     dimsIn = vector<int>(inSize);
     dimsOut = vector<int>(inSize);
@@ -114,14 +65,19 @@ Node &GraphWrapper::getNode(int i,  int j) {
 }
 
 
-vector<Node> &GraphWrapper::getNodes() {
+const vector<NodeName> & GraphWrapper::getNodes() const {
     return nodeList;
 }
 
 Stats GraphWrapper::getInteractionStats() {
     Stats stats{};
     for(auto n : getNodes()) {
-        stats +=  n.getInteractionStats();
+        Node node = adj[n.first][n.second];
+        if (node.getNodeState() == State::ENABLED) {
+            Stats res{};
+            computeChangeStatistics(n.first, n.second, res);
+            stats += res;
+        }
     }
     return stats / 2;
 }
@@ -204,9 +160,10 @@ void GraphWrapper::computeChangeStatistics(const int &i, const int & j, Stats & 
 Stats GraphWrapper::fastGetInteractionStats() {
     Stats stats{};
        for(const auto & n : getNodes()) {
-           if (n.getNodeState() == State::ENABLED) {
+           Node node = adj[n.first][n.second];
+           if (node.getNodeState() == State::ENABLED) {
                Stats res{};
-               computeChangeStatistics(n.getName().first, n.getName().second, res);
+               computeChangeStatistics(n.first, n.second, res);
                stats += res;
            }
            

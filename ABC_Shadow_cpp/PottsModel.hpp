@@ -14,6 +14,7 @@
 #include "GraphWrapper.hpp"
 #include "Stats.hpp"
 #include "RandomGen.hpp"
+#include <stdlib.h>
 #include <cassert>
 #define assertm(exp, msg) assert(((void)msg, exp))
 using std::exp;
@@ -37,7 +38,7 @@ public:
     double getDelta(GraphWrapper &g, Node n, NodeType newtype);
     void applyChangeStats(Stats &delta_stat, const State &newState, Node* node);
     Stats applyGibbsProposal(Node* node, RandomGen &rGen);
-    Stats applyGibbsProposalParallel(Node* node, GraphWrapper* graph, RandomGen &rGen);
+    Stats applyGibbsProposalParallel(Node* node, GraphWrapper* graph, unsigned * seed);
     State getNewProposal(RandomGen &rGen);
     Stats getStats(GraphWrapper &g);
     Stats getParams();

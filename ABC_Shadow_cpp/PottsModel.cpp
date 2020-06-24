@@ -36,7 +36,7 @@ double PottsModel::evaluateFromStats(const Stats &stats) {
 }
 
 void PottsModel::applyChangeStats(Stats &delta_stats, const State &newState, Node* node) {
-    node->applyPottsChangeStats(delta_stats, newState);
+    //node->applyPottsChangeStats(delta_stats, newState);
 }
 
 /*
@@ -68,8 +68,9 @@ Stats PottsModel::applyGibbsProposal(Node* node, RandomGen &rGen) {
     State newState, oldState{node->getNodeState()};
     double upProb{0};
 
-    node->getGibbsChangeStatistics(up);
-
+    //node->getGibbsChangeStatistics(up);
+    
+    //graph->computeChangeStatistics(node->getName().first, node->getName().second, up);
     upProb = exp(params.dot(up));
     upProb = upProb / (1+ upProb);
 
@@ -91,7 +92,7 @@ Stats PottsModel::applyGibbsProposal(Node* node, RandomGen &rGen) {
     
 }
 
-Stats PottsModel::applyGibbsProposalParallel(Node* node, GraphWrapper* graph, RandomGen & rGen) {
+Stats PottsModel::applyGibbsProposalParallel(Node* node, GraphWrapper* graph, unsigned * seed) {
     Stats up{};
     State newState, oldState{node->getNodeState()};
     double upProb{0};
@@ -105,7 +106,8 @@ Stats PottsModel::applyGibbsProposalParallel(Node* node, GraphWrapper* graph, Ra
     upProb = upProb / (1+ upProb);
 
    // if(upProb > rGen.getUnifornRealD()) {
-    if(upProb > rGen.getUnifornRealD()) {
+    double r = (double) rand_r(seed) / (double) RAND_MAX;
+    if(upProb > r) {
         newState = State::ENABLED;
     } else {
         newState = State::DISABLED;
