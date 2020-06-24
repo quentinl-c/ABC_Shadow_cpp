@@ -16,9 +16,11 @@
 #include "RandomGen.hpp"
 #include <stdlib.h>
 #include <cassert>
+#include <chrono> // for std::chrono functions
 #define assertm(exp, msg) assert(((void)msg, exp))
 using std::exp;
-
+using clock_time = std::chrono::high_resolution_clock;
+using second_t = std::chrono::duration<double, std::ratio<1> >;
 class PottsModel {
     
 private:
@@ -38,7 +40,7 @@ public:
     double getDelta(GraphWrapper &g, Node n, NodeType newtype);
     void applyChangeStats(Stats &delta_stat, const State &newState, Node* node);
     Stats applyGibbsProposal(Node* node, RandomGen &rGen);
-    Stats applyGibbsProposalParallel(Node* node, GraphWrapper* graph, unsigned * seed);
+    Stats applyGibbsProposalParallel(Node* node, GraphWrapper* graph, unsigned * seed, vector<double>& times);
     State getNewProposal(RandomGen &rGen);
     Stats getStats(GraphWrapper &g);
     Stats getParams();

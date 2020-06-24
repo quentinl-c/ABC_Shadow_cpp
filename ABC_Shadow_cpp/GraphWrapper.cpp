@@ -10,6 +10,9 @@
 
 GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
     adj = vector<vector<Node>>(inSize);
+    adjType = vector<vector<NodeType>>(inSize);
+    adjState = vector<vector<State>>(inSize);
+    
     nodeList = vector<NodeName>();
     dimsIn = vector<int>(inSize);
     dimsOut = vector<int>(inSize);
@@ -19,14 +22,20 @@ GraphWrapper::GraphWrapper(const int inSize, const int outSize) {
     int inCounter = 0;
     for (int i{0}; i < inSize; i++) {
         adj[i] = vector<Node>(inSize + outSize);
-
+        adjType[i] = vector<NodeType>(inSize + outSize);
+        adjState[i] = vector<State>(inSize + outSize);
+        
         for (int j{i + 1}; j < inSize; j++) {
             adj[i][j] = Node(i,j, NodeType::INTRA);
             inCounter ++;
+            adjState[i][j] = State::DISABLED;
+            adjType[i][j] = NodeType::INTRA;
         }
 
         for(int j{inSize}; j < inSize + outSize; j ++) {
             adj[i][j] = Node(i,j, NodeType::INTER);
+            adjState[i][j] = State::DISABLED;
+            adjType[i][j] = NodeType::INTER;
         }
     }
     std::cout << "Nodes in " << inCounter << std::endl;
@@ -60,10 +69,20 @@ vector<vector<Node>> &GraphWrapper::getAdj() {
     return adj;
 }
 
-Node &GraphWrapper::getNode(int i,  int j) {
+Node GraphWrapper::getNode(int i,  int j) {
     return adj[i][j];
 }
 
+Node & GraphWrapper::getRefNode(int i, int j) {
+    return adj[i][j];
+}
+
+State GraphWrapper::getNodeState(int i, int j) const {
+    return adjState[i][j];
+}
+NodeType GraphWrapper::getNodeType(int i, int j) const {
+    return adjType[i][j];
+}
 
 const vector<NodeName> & GraphWrapper::getNodes() const {
     return nodeList;
@@ -98,7 +117,8 @@ int GraphWrapper::getOutSize() {
 void GraphWrapper::enableNode(int i, int j) {
     const int left = i < j ? i : j;
     const int right = i < j ? j :i;
-   
+    adj[i][j].updateNodeState(State::ENABLED);
+    adjState[i][j] = State::ENABLED;
     if (right < inSize) {
         dimsIn[left] ++;
         dimsIn[right] ++;
@@ -110,7 +130,8 @@ void GraphWrapper::enableNode(int i, int j) {
 void GraphWrapper::disableNode(int i, int j) {
     const int left = i < j ? i : j;
     const int right = i < j ? j :i;
-
+    adj[i][j].updateNodeState(State::DISABLED);
+    adjState[i][j] = State::DISABLED;
     if (right < inSize) {
         dimsIn[left] --;
         dimsIn[right] --;
@@ -131,7 +152,7 @@ int GraphWrapper::getDimsOut(const int & idx) {
 void GraphWrapper::computeChangeStatistics(const int &i, const int & j, Stats & s) {
     const int left = i < j ? i : j;
     const int right = i < j ? j :i;
-    Node & node = getNode(left, right);
+    Node & node = adj[i][j];
     State state = node.getNodeState();
     NodeType activation = node.getActivationVal();
     int activationVal = static_cast<int>(activation);

@@ -145,8 +145,9 @@ int main(int argc, const char * argv[]) {
         mcmc->parallelSetup(confReader.getSimIter(), threadsNbr, *rGen);
 
         std::cout << "start parallel sim " << std::endl;
-        time_start = clock_time::now();
+       time_start = clock_time::now();
         mcmc->generateIndependentNodes();
+        double setup_duration = std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count();
         vector<Stats> res2 = parallelGibbsSim( *model, *g, mcmc->chunks, mcmc->chunksNbr, rGen->getSeed(), threadsNbr, confReader.getSimIter());
         
         /*for(auto &r : res2) {
@@ -156,6 +157,7 @@ int main(int argc, const char * argv[]) {
         confReader.save(confReader.getName() + "_config_gibbs_sim.txt");
         Stats yObs2 = avgTraces(res2);
         outputfile.close();
+        cout << "Setup duration " << setup_duration << std::endl;
         cout << "📊 End Sim generated observation : " << yObs2 << " in " << std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count() << " s." << endl;
     } else {
         cerr << "No action matches to " << action << " [abc_estim] [mh_sim] [gibbs_sim]" << endl;

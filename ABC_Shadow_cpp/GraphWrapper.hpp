@@ -24,6 +24,9 @@ private:
     int inSize;
     int outSize;
     vector<vector<Node>> adj;
+    vector<vector<State>> adjState;
+    vector<vector<NodeType>> adjType;
+    
     vector<NodeName> nodeList;
     // Experimental:
     vector<int> dimsIn;
@@ -39,7 +42,8 @@ public:
     int getOutSize();
     const vector<NodeName> & getNodes() const;
     vector<vector<Node>> &getAdj();
-    Node &getNode(int i, int j);
+    Node getNode(int i, int j);
+    Node & getRefNode(int i, int j);
     Stats getInteractionStats();
 
     // Experimental :
@@ -49,5 +53,7 @@ public:
     int getDimsOut(const int & idx);
     void computeChangeStatistics(const int &i, const int & j,  Stats & s);
     Stats fastGetInteractionStats();
+    State getNodeState(int i, int j) const;
+    NodeType getNodeType(int i, int j) const;
 };
 #endif /* GraphWrapper_hpp */
