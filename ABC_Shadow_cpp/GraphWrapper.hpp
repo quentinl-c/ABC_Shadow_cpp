@@ -23,7 +23,7 @@ class GraphWrapper {
 private:
     int inSize;
     int outSize;
-    vector<vector<Node>> adj;
+    vector<Node> adj;
     vector<vector<State>> adjState;
     vector<vector<NodeType>> adjType;
     
@@ -41,7 +41,7 @@ public:
     int getInSize();
     int getOutSize();
     const vector<NodeName> & getNodes() const;
-    vector<vector<Node>> &getAdj();
+    vector<Node> &getAdj();
     Node getNode(int i, int j);
     Node & getRefNode(int i, int j);
     Stats getInteractionStats();

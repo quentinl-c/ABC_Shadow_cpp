@@ -11,6 +11,7 @@
 #include <numeric>
 #include "PottsModel.hpp"
 #include "MCMCSim.hpp"
+#include "MCMCParallelSim.hpp"
 #include <chrono> // for std::chrono functions
 #include <fstream>
 #include <map>
@@ -142,13 +143,13 @@ int main(int argc, const char * argv[]) {
         mcmc->reset();
         int threadsNbr = 4;
 
-        mcmc->parallelSetup(confReader.getSimIter(), threadsNbr, *rGen);
+        MCMCParallelInfo parallelInfo = MCMCParallelInfo(confReader.getSimIter(), threadsNbr, *g);
 
         std::cout << "start parallel sim " << std::endl;
        time_start = clock_time::now();
-        mcmc->generateIndependentNodes();
+        parallelInfo.generateIndependentNodes();
         double setup_duration = std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count();
-        vector<Stats> res2 = parallelGibbsSim( *model, *g, mcmc->chunks, mcmc->chunksNbr, rGen->getSeed(), threadsNbr, confReader.getSimIter());
+        vector<Stats> res2 = parallelGibbsSim( *model, *g, parallelInfo.getChunks(), parallelInfo.getChunksNbr(), rGen->getSeed(), threadsNbr, confReader.getSimIter());
         
         /*for(auto &r : res2) {
             std::cout << r << endl;

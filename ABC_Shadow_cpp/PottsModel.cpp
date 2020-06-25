@@ -95,9 +95,9 @@ Stats PottsModel::applyGibbsProposal(Node* node, RandomGen &rGen) {
 Stats PottsModel::applyGibbsProposalParallel(Node* node, GraphWrapper* graph, unsigned * seed, vector<double>& times) {
     Stats up{};
     State newState;
-    std::chrono::time_point<clock_time> time_start =  clock_time::now();
+    //std::chrono::time_point<clock_time> time_start =  clock_time::now();
     State oldState{node->getNodeState()};
-    times.push_back(std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count());
+    //times.push_back(std::chrono::duration_cast<second_t>(clock_time::now() - time_start).count());
     double upProb{0};
     //node->getGibbsChangeStatistics(up);
     NodeName nid = node->getName();
